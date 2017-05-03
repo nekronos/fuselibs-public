@@ -3,6 +3,8 @@ using Uno.UX;
 using Uno.Compiler.ExportTargetInterop;
 using Fuse.Input;
 using Fuse.Controls.Native;
+using Uno.Graphics;
+using OpenGL;
 
 namespace Fuse.Controls
 {
@@ -66,7 +68,7 @@ namespace Fuse.Controls
 		IViewHandleRenderer InstatiateRenderer()
 		{
 			if defined(Android)
-				return new TextEditRenderer();
+				return new VirtualDisplayRenderer(this);
 			else if defined(iOS)
 				return new NativeViewRenderer();
 		}
@@ -214,6 +216,171 @@ namespace Fuse.Controls
 			extern(!iOS)
 			public override object New() { throw new Exception("Cannot instantiate iOS templates on non-ios platforms!"); }
 		}
+	}
+
+	extern(Android) internal class VirtualDisplayRenderer : IViewHandleRenderer
+	{
+
+		Visual _host;
+
+		public VirtualDisplayRenderer(Visual host)
+		{
+			_host = host;
+		}
+
+		[Foreign(Language.Java)]
+		Java.Object Initialize(Action onFrameAvailableCallback, Java.Object content, int width, int height, int dpi, int textureName)
+		@{
+			com.fuse.android.views.OffscreenRenderer offscreenRenderer = new com.fuse.android.views.OffscreenRenderer(textureName, width, height, dpi, new android.graphics.SurfaceTexture.OnFrameAvailableListener() {
+			 	public void onFrameAvailable(android.graphics.SurfaceTexture st) {
+			 		onFrameAvailableCallback.run();
+			 	}
+			});
+			offscreenRenderer.setContent((android.view.View)content);
+			return offscreenRenderer;
+		@}
+
+		bool _valid = false;
+		void OnFrameAvailable()
+		{
+			UpdateManager.PostAction(UpdateTexImage);
+		}
+
+		Java.Object _offscreenRenderer;
+		GLTextureHandle _textureHandle;
+		Java.Object _textEdit;
+
+		void IViewHandleRenderer.Draw(ViewHandle viewHandle, float4x4 localToClipTransform, float2 position, float2 size, float density)
+		{
+			int2 pixelSize = (int2)(size * density);
+
+			if (_offscreenRenderer == null)
+			{
+				_textEdit = CreateTextEdit();
+				_textureHandle = GL.CreateTexture();
+				_offscreenRenderer = Initialize(OnFrameAvailable, _textEdit, pixelSize.X, pixelSize.Y, (int)density, (int)_textureHandle);
+			}
+
+			if (!_textEditValid)
+			{
+				CopyState(viewHandle.NativeHandle, _textEdit);
+				_textEditValid = true;
+			}
+
+			if (_valid)
+				Blitter.Singleton.Blit(
+					new VideoTexture(_textureHandle),
+					position,
+					size * density,
+					localToClipTransform);
+		}
+
+		bool _textEditValid = false;
+
+		void IViewHandleRenderer.Invalidate()
+		{
+			_textEditValid = false;
+			if (_offscreenRenderer != null)
+				InvalidateOffscreenRenderer(_offscreenRenderer);
+		}
+
+		[Foreign(Language.Java)]
+		void InvalidateOffscreenRenderer(Java.Object handle)
+		@{
+			com.fuse.android.views.OffscreenRenderer offscreenRenderer = (com.fuse.android.views.OffscreenRenderer)handle;
+			offscreenRenderer.invalidate();
+		@}
+
+		void UpdateTexImage()
+		{
+			UpdateTexImage(_offscreenRenderer);
+			_valid = true;
+			_host.InvalidateVisual();
+		}
+
+		[Foreign(Language.Java)]
+		void UpdateTexImage(Java.Object handle)
+		@{
+			com.fuse.android.views.OffscreenRenderer offscreenRenderer = (com.fuse.android.views.OffscreenRenderer)handle;
+			offscreenRenderer.updateTexImage();
+		@}
+
+		void IDisposable.Dispose()
+		{
+
+		}
+
+		extern(Android || iOS) class Blitter
+		{
+			internal static Blitter Singleton = new Blitter();
+
+			public void Blit(VideoTexture vt, float2 pos, float2 size, float4x4 localToClipTransform)
+			{
+				draw
+				{
+					apply Fuse.Drawing.PreMultipliedAlphaCompositing;
+					CullFace : PolygonFace.None;
+					DepthTestEnabled: false;
+					float2[] verts: readonly new float2[] {
+						float2(0,0),
+						float2(1,0),
+						float2(1,1),
+						float2(0,0),
+						float2(1,1),
+						float2(0,1)
+					};
+
+					float2 v: vertex_attrib(verts);
+					float2 LocalVertex: pos + v * size;
+					ClipPosition: Vector.Transform(LocalVertex, localToClipTransform);
+					float2 TexCoord: v;
+					PixelColor: sample(vt, TexCoord, SamplerState.LinearClamp);
+				};
+			}
+		}
+
+		[Foreign(Language.Java)]
+		static void CopyState(Java.Object sourceHandle, Java.Object targetHandle)
+		@{
+			android.widget.TextView source = (android.widget.TextView)sourceHandle;
+			android.widget.TextView target = (android.widget.TextView)targetHandle;
+
+			java.lang.String text = source.getText().toString();
+			java.lang.CharSequence hint = text.length() == 0 ? source.getHint() : "";
+			target.setText(text);
+			target.setHint(hint);
+			target.setTextColor(source.getCurrentTextColor());
+			target.setHintTextColor(source.getCurrentHintTextColor());
+			target.setImeOptions(source.getImeOptions());
+			target.setIncludeFontPadding(source.getIncludeFontPadding());
+			target.setTransformationMethod(source.getTransformationMethod());
+
+			// Setting the inputtype causes bugs when rendering RTL text,
+			// it triggers the same symptoms as the TextAlignment bug below.
+			// Assuming not copying this state is safe since it does not affect
+			// the rendering. No idea why this happens...
+
+			// target.setInputType(source.getInputType());
+
+			target.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, source.getTextSize());
+			target.setTypeface(source.getTypeface());
+			target.setLineSpacing(source.getLineSpacingExtra(), source.getLineSpacingMultiplier());
+			target.setPadding(
+				source.getPaddingLeft(),
+				source.getPaddingTop(),
+				source.getPaddingRight(),
+				source.getPaddingBottom());
+			target.setTextScaleX(source.getTextScaleX());
+		@}
+
+		[Foreign(Language.Java)]
+		static Java.Object CreateTextEdit()
+		@{
+			android.widget.TextView tv = new android.widget.TextView(com.fuse.Activity.getRootActivity());
+			tv.setBackgroundResource(0);
+			tv.setText("//// OUTRACKS");
+			return tv;
+		@}
 	}
 
 	extern(Android) internal class TextEditRenderer : IViewHandleRenderer
