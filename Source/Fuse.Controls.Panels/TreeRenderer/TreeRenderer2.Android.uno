@@ -30,24 +30,45 @@ namespace Fuse.Controls.Android
 			UpdateManager.AddAction(OnUpdate, UpdateStage.Draw);
 		}
 
+		LinkedList<ViewNode> _currentTree = null;
+
+		void BuildNativeTree()
+		{
+			if (_rootElement.TreeHandle != TreeHandle.Null)
+			{
+				var rootViewNode = _viewNodes[_rootElement.TreeHandle];
+
+				debug_log("input:");
+				debug_log(ViewNodeExtensions.Stringify(rootViewNode));
+				debug_log("Output:");
+				var flattenedViewNodes = rootViewNode.Flatten();
+				foreach (var node in flattenedViewNodes)
+					debug_log(node.Stringify());
+
+				_currentTree = new LinkedList<ViewNode>();
+				_currentTree.AddLast(rootViewNode);
+				TreeBuilder.Build(_insertChild, _currentTree, _viewHandles);
+			}
+		}
+
+		void TearDownNativeTree()
+		{
+			if (_currentTree != null)
+			{
+				TreeBuilder.TearDown(_removeChild, _currentTree, _viewHandles);
+				_currentTree = null;
+			}
+			Invalidate();
+		}
+
 		bool _treeValid = false;
 
 		void OnUpdate()
 		{
 			if (!_treeValid)
 			{
-				if (_rootElement.TreeHandle != TreeHandle.Null)
-				{
-					var rootViewNode = _viewNodes[_rootElement.TreeHandle];
-					debug_log("input:");
-					debug_log(ViewNodeExtensions.Stringify(rootViewNode));
-					debug_log("Output:");
-					var flattenedViewNodes = rootViewNode.Flatten();
-					foreach (var node in flattenedViewNodes)
-					{
-						debug_log(node.Stringify());
-					}
-				}
+				TearDownNativeTree();
+				BuildNativeTree();
 				_treeValid = true;
 			}
 		}
@@ -59,6 +80,7 @@ namespace Fuse.Controls.Android
 
 		Dictionary<TreeHandle,ViewNode> _viewNodes = new Dictionary<TreeHandle,ViewNode>();
 		Dictionary<TreeHandle,ViewHandle> _viewHandles = new Dictionary<TreeHandle,ViewHandle>();
+		Dictionary<TreeHandle,float4x4> _transforms = new Dictionary<TreeHandle,float4x4>();
 
 		ViewNode GetParentViewNode(Element e)
 		{
@@ -113,7 +135,29 @@ namespace Fuse.Controls.Android
 
 		void ITreeRenderer.Unrooted(Element e)
 		{
+			TearDownNativeTree();
+			Invalidate();
 
+			var handle = e.TreeHandle;
+
+			var viewNode = _viewNodes[handle];
+			var parentViewNode = GetParentViewNode(e);
+			if (parentViewNode != null)
+				parentViewNode.Children.Remove(viewNode);
+
+			_viewNodes.Remove(handle);
+
+			var viewHandle = _viewHandles[handle];
+			viewHandle.Dispose();
+			_viewHandles.Remove(handle);
+
+			e.TreeHandle = TreeHandle.Null;
+
+			if (e is Control)
+			{
+				((Control)e).ViewHandle = null;
+				((Control)e).NativeView = null;
+			}
 		}
 
 		void ITreeRenderer.BackgroundChanged(Element e, Brush background)
@@ -123,12 +167,24 @@ namespace Fuse.Controls.Android
 
 		void ITreeRenderer.TransformChanged(Element e)
 		{
+			var viewHandle = _viewHandles[e.TreeHandle];
+			var transform = e.LocalTransform;
+			var size = e.ActualSize;
+			var density = e.Viewport.PixelsPerPoint;
 
+			var p = e.Parent;
+			if (p is Control)
+				((Control)p).CompensateForScrollView(ref transform);
+
+			viewHandle.UpdateViewRect(transform, size, density);
 		}
 
 		void ITreeRenderer.Placed(Element e)
 		{
-
+			var density = e.Viewport.PixelsPerPoint;
+			var actualPosition = (int2)(e.ActualPosition * density);
+			var actualSize = (int2)(e.ActualSize * density);
+			_viewHandles[e.TreeHandle].UpdateViewRect(actualPosition.X, actualPosition.Y, actualSize.X, actualSize.Y);
 		}
 
 		void ITreeRenderer.IsVisibleChanged(Element e, bool isVisible)
@@ -169,8 +225,12 @@ namespace Fuse.Controls.Android
 
 		bool ITreeRenderer.Measure(Element e, LayoutParams lp, out float2 size)
 		{
-			size = float2(0.0f);
-			return false;
+			var viewHandle = _viewHandles[e.TreeHandle];
+			var canMeasure = viewHandle.IsLeafView;
+			size = canMeasure
+				? viewHandle.Measure(lp, e.Viewport.PixelsPerPoint)
+				: float2(0.0f);
+			return canMeasure;
 		}
 
 		ViewHandle InstantiateView(Element e)
