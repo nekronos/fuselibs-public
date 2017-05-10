@@ -23,8 +23,35 @@ namespace Fuse.Elements
 		bool Measure(Element e, LayoutParams lp, out float2 size);
 	}
 
+	internal struct TreeHandle
+	{
+		readonly uint _id;
+
+		TreeHandle(uint id)
+		{
+			_id = id;
+		}
+
+		public static TreeHandle Null = new TreeHandle(0);
+
+		static uint _idCounter = 1;
+		public static TreeHandle New() { return new TreeHandle(_idCounter++); }
+		public override bool Equals(object obj) { return obj is TreeHandle && this == (TreeHandle)obj; }
+		public override int GetHashCode() { return _id.GetHashCode(); }
+		public static bool operator ==(TreeHandle x, TreeHandle y) { return x._id == y._id; }
+		public static bool operator !=(TreeHandle x, TreeHandle y) { return x._id != y._id; }
+
+		public override string ToString()
+		{
+			return _id.ToString();
+		}
+	}
+
 	public partial class Element
 	{
+
+		internal TreeHandle TreeHandle = TreeHandle.Null;
+
 		public virtual ITreeRenderer TreeRenderer
 		{
 			get { return Parent	is Element ? ((Element)Parent).TreeRenderer : null; }
