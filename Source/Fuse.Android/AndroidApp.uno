@@ -57,7 +57,7 @@ namespace Fuse
 
 				public TreeRenderer2Panel()
 				{
-					_treeRenderer = new TreeRenderer2(this, InsertChild, RemoveChild);
+					_treeRenderer = new Fuse.Controls.Android.TreeRenderer2(this, InsertChild, RemoveChild);
 				}
 
 				public sealed override ITreeRenderer TreeRenderer { get { return _treeRenderer; } }
