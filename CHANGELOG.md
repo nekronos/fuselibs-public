@@ -1,5 +1,8 @@
 # Unreleased
 
+## Native
+- Added feature toggle for implicit `GraphicsView`. If you are making an app using only Native UI disabling the implicit `GraphicsView` can increase performance. Disable the `GraphicsView` by defining `NATIVE_APP` when building. For example `uno build -t=ios -DNATIVE_APP`
+
 ## Gestures
 - Fuse.Input.Gesture now only has an internal constructor. This means that external code can't instantiate it. But before, they already couldn't do so in a *meaningful* way, so this shouldn't really affect any applications.
 
