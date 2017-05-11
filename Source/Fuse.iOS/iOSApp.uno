@@ -19,7 +19,21 @@ namespace Fuse
 		}
 
 		TreeRendererPanel _renderPanel;
-		Fuse.Controls.GraphicsView _graphicsView;
+
+		extern(!NATIVE_APP)
+		Fuse.Controls.GraphicsView _graphicsView = new Fuse.Controls.GraphicsView();
+
+		Visual RootVisual
+		{
+			get
+			{
+				if defined(!NATIVE_APP)
+					return _graphicsView;
+				else
+					return _renderPanel;
+			}
+		}
+
 
 		public App()
 		{
@@ -35,8 +49,9 @@ namespace Fuse
 			Uno.Platform.Displays.MainDisplay.Tick += OnTick;
 
 			_renderPanel = new TreeRendererPanel(new RootViewHost());
-			_graphicsView = new Fuse.Controls.GraphicsView();
-			_renderPanel.Children.Add(_graphicsView);
+
+			if defined(!NATIVE_APP)
+				_renderPanel.Children.Add(_graphicsView);
 
 			InputDispatch.AddListener(_renderPanel, AppRoot.Handle);
 
@@ -45,12 +60,12 @@ namespace Fuse
 
 		public sealed override IList<Node> Children
 		{
-			get { return _graphicsView.Children; }
+			get { return RootVisual.Children; }
 		}
-		
+
 		public sealed override Visual ChildrenVisual
 		{
-			get { return _graphicsView; }
+			get { return RootVisual; }
 		}
 
 		void OnTick(object sender, Uno.Platform.TimerEventArgs args)
@@ -64,7 +79,7 @@ namespace Fuse
 				Fuse.AppBase.OnUnhandledExceptionInternal(e);
 			}
 			Time.Set(Uno.Diagnostics.Clock.GetSeconds());
-			
+
 			try
 			{
 				OnUpdate();
@@ -86,7 +101,7 @@ namespace Fuse
 			CheckStatusBarOrientation();
 			base.OnUpdate();
 		}
-		
+
 		//iOS: has no events to detect focus change thus we need this stupid polling
  		ObjC.Object _currentFocus;
  		void CheckFocus()
@@ -126,7 +141,7 @@ namespace Fuse
  			if (_prevStatusBarOrientation != o)
  			{
  				_prevStatusBarOrientation = o;
-				UpdateManager.PerformNextFrame(_graphicsView.InvalidateVisual);
+				UpdateManager.PerformNextFrame(RootVisual.InvalidateVisual);
  			}
  		}
 
