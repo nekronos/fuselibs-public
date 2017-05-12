@@ -59,10 +59,7 @@ namespace Fuse.Android.GL
 
 		ITreeRenderer GetTreeRenderer(Element e)
 		{
-			if (e == this)
-				return base.TreeRenderer;
-			else
-				return _treeRenderer;
+			return  e == this ? base.TreeRenderer : _treeRenderer;
 		}
 
 		FrustumViewport _frustumViewport = new FrustumViewport();
@@ -94,7 +91,6 @@ namespace Fuse.Android.GL
 
 		void PrepareFrame()
 		{
-			debug_log("-------------- BEGIN PrepareFrame");
 			if (!IsRootingCompleted)
 				return;
 
@@ -105,31 +101,26 @@ namespace Fuse.Android.GL
 
 			_treeRenderer.EnqueueFrame(NewRenderViewport());
 
-			debug_log("-------------- END PrepareFrame");
 		}
 
 		void ISurfaceTextureListener.OnAvailable(object surfaceTexture, int width, int height)
 		{
 			InvalidateVisual();
-			//debug_log("ISurfaceTextureListener.OnAvailable( " + width + ", " + height + " )");
 			((ISurfaceTextureListener)_treeRenderer).OnAvailable(surfaceTexture, width, height);
 		}
 
 		bool ISurfaceTextureListener.OnDestroyed(object surfaceTexture)
 		{
-			//debug_log("ISurfaceTextureListener.OnDestroyed( )");
 			return ((ISurfaceTextureListener)_treeRenderer).OnDestroyed(surfaceTexture);
 		}
 
 		void ISurfaceTextureListener.OnSizeChanged(object surfaceTexture, int width, int height)
 		{
-			//debug_log("ISurfaceTextureListener.OnSizeChanged( " + width + ", " + height + " )");
 			((ISurfaceTextureListener)_treeRenderer).OnSizeChanged(surfaceTexture, width, height);
 		}
 
 		void ISurfaceTextureListener.OnUpdated(object surfaceTexture)
 		{
-			//debug_log("ISurfaceTextureListener.OnUpdated( ) @ " + UpdateManager.FrameIndex);
 			((ISurfaceTextureListener)_treeRenderer).OnUpdated(surfaceTexture);
 		}
 

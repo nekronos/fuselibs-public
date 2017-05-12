@@ -6,6 +6,7 @@ using Fuse;
 using Fuse.Drawing;
 using Fuse.Elements;
 using Fuse.Controls;
+using Uno.Graphics;
 using Uno.Compiler.ExportTargetInterop;
 
 namespace Fuse.Android.GL
@@ -31,19 +32,15 @@ namespace Fuse.Android.GL
 
 			dc.PushViewport(viewport);
 			dc.PushScissor(new Recti(0, 0, (int)viewport.PixelSize.X, (int)viewport.PixelSize.Y));
-			dc.Clear(float4(0.0f, 1.0f, 0.0f, 1.0f));
+			dc.Clear(float4(0.3f, 0.3f, 0.3f, 1.0f));
+
+			Rectangle.MakeTestRect().Draw(viewport, dc);
+
 			dc.PopScissor();
 			dc.PopViewport();
 
 			SwapBuffers(_windowSurface);
 		}
-
-		/*[Foreign(Language.Java)]
-		void Clear()
-		@{
-			GLES20.glClearColor(0.7f, 0.3f, 0.0f, 1.0f);
-			GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-		@}*/
 
 		[Foreign(Language.Java)]
 		void SwapBuffers(Java.Object windowSurface)
