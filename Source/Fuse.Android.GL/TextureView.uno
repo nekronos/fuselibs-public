@@ -5,6 +5,10 @@ using Fuse.Controls.Native;
 
 namespace Fuse.Android.GL
 {
+	extern(!Android)
+	interface ISurfaceTextureListener {}
+
+	extern(Android)
 	interface ISurfaceTextureListener
 	{
 		void OnAvailable(object surfaceTexture, int width, int height);
