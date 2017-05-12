@@ -6,6 +6,9 @@
   "Package": {
     "ProjectUrl": "https://fusetools.com"
   },
+  "Packages": [
+    "Uno.Threading",
+  ],
   "Projects": [
     "../Fuse.Controls/Fuse.Controls.unoproj",
     "../Fuse.Elements/Fuse.Elements.unoproj",
@@ -19,5 +22,16 @@
   ],
   "Includes": [
     "*",
+    "Java/grafika/Drawable2d.java:Java:Android",
+    "Java/grafika/EglCore.java:Java:Android",
+    "Java/grafika/EglSurfaceBase.java:Java:Android",
+    "Java/grafika/FlatShadedProgram.java:Java:Android",
+    "Java/grafika/FullFrameRect.java:Java:Android",
+    "Java/grafika/GeneratedTexture.java:Java:Android",
+    "Java/grafika/GlUtil.java:Java:Android",
+    "Java/grafika/OffscreenSurface.java:Java:Android",
+    "Java/grafika/Sprite2d.java:Java:Android",
+    "Java/grafika/Texture2dProgram.java:Java:Android",
+    "Java/grafika/WindowSurface.java:Java:Android",
   ]
 }
