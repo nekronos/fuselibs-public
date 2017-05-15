@@ -6,10 +6,10 @@ using Fuse.Controls.Native;
 namespace Fuse.Graphics.Android
 {
 	extern(!Android)
-	interface ISurfaceTextureListener {}
+	internal interface ISurfaceTextureListener {}
 
 	extern(Android)
-	interface ISurfaceTextureListener
+	internal interface ISurfaceTextureListener
 	{
 		void OnAvailable(object surfaceTexture, int width, int height);
 		bool OnDestroyed(object surfaceTexture);
@@ -17,12 +17,15 @@ namespace Fuse.Graphics.Android
 		void OnUpdated(object surfaceTexture);
 	}
 
-	extern(!Android) class TextureView
+	extern(!Android)
+	internal class TextureView
 	{
 		[UXConstructor]
 		public TextureView([UXParameter("SurfaceTextureListener")]ISurfaceTextureListener surfaceListener) { }
 	}
-	extern(Android) class TextureView : ViewHandle
+
+	extern(Android)
+	internal class TextureView : ViewHandle
 	{
 		ISurfaceTextureListener _surfaceListener;
 

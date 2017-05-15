@@ -6,14 +6,14 @@
   "Package": {
     "ProjectUrl": "https://fusetools.com"
   },
+  "InternalsVisibleTo": [
+    "Fuse.Graphics.GraphicsView"
+  ],
   "Packages": [
     "Uno.Threading",
   ],
   "Projects": [
-    "../Fuse.Controls/Fuse.Controls.unoproj",
     "../Fuse.Elements/Fuse.Elements.unoproj",
-    "../Fuse.Controls.Primitives/Fuse.Controls.Primitives.unoproj",
-    "../Fuse.Controls.Panels/Fuse.Controls.Panels.unoproj",
     "../Fuse.Controls.Native/Fuse.Controls.Native.unoproj",
     "../Fuse.Drawing/Fuse.Drawing.unoproj",
     "../Fuse.Drawing.Primitives/Fuse.Drawing.Primitives.unoproj",

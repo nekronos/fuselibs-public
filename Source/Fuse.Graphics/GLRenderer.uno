@@ -5,7 +5,6 @@ using Uno.Threading;
 using Fuse;
 using Fuse.Drawing;
 using Fuse.Elements;
-using Fuse.Controls;
 using Uno.Graphics;
 using Uno.Compiler.ExportTargetInterop;
 using Fuse.Graphics.Android;
