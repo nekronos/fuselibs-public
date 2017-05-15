@@ -12,7 +12,7 @@ namespace Fuse.Graphics.Primitives
 	block Common
 	{
 		public DrawContext DrawContext: undefined;
-		public ImmutableViewport Viewport: undefined;
+		public IRenderViewport Viewport: undefined;
 		public Drawable Drawable: undefined;
 		public float2 Size: float2(1);
 		public float2 CanvasSize: float2(1);
@@ -71,7 +71,7 @@ namespace Fuse.Graphics.Primitives
 		static public Rectangle Singleton = new Rectangle();
 
 		StrokeCoverage _strokeCoverage = new StrokeCoverage();
-		public void Stroke(ImmutableViewport viewport, DrawContext dc, Drawable drawable, float2 Size, float4 CornerRadius, Stroke stroke,
+		public void Stroke(IRenderViewport viewport, DrawContext dc, Drawable drawable, float2 Size, float4 CornerRadius, Stroke stroke,
 			float2 Position = float2(0), float Smoothness = 1)
 		{
 			var r = stroke.GetDeviceAdjusted(dc.ViewportPixelsPerPoint);
@@ -87,7 +87,7 @@ namespace Fuse.Graphics.Primitives
 		}
 
 		FillCoverage _fillCoverage = new FillCoverage();
-		public void Fill(ImmutableViewport viewport, DrawContext dc, Drawable drawable, float2 Size, float4 CornerRadius, Brush brush,
+		public void Fill(IRenderViewport viewport, DrawContext dc, Drawable drawable, float2 Size, float4 CornerRadius, Brush brush,
 			float2 Position = float2(0), float Smoothness = 1 )
 		{
 			Draw(viewport, dc, drawable, Size, CornerRadius, brush, _fillCoverage,
@@ -95,7 +95,7 @@ namespace Fuse.Graphics.Primitives
 		}
 
 		Falloff _shadowFalloff = new ShadowFalloff();
-		public void Shadow(ImmutableViewport viewport, DrawContext dc, Drawable drawable, float2 Size, float4 CornerRadius, Brush brush,
+		public void Shadow(IRenderViewport viewport, DrawContext dc, Drawable drawable, float2 Size, float4 CornerRadius, Brush brush,
 			float2 Position = float2(0), float Smoothness = 1 )
 		{
 			Draw(viewport, dc, drawable, Size, CornerRadius, brush, _fillCoverage,
@@ -307,7 +307,7 @@ namespace Fuse.Graphics.Primitives
 		}
 
 		float[] _uniforms = new float[10];
-		void Draw(ImmutableViewport viewport, DrawContext dc, Drawable drawable, float2 Size, float4 CornerRadius, Brush brush,
+		void Draw(IRenderViewport viewport, DrawContext dc, Drawable drawable, float2 Size, float4 CornerRadius, Brush brush,
 			Coverage cover, float2 extend, float2 position, float smoothness, Falloff falloff = new Falloff() )
 		{
 			if (_bufferDistance == null)
