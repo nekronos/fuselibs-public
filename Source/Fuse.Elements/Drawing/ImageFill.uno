@@ -25,6 +25,11 @@ namespace Fuse.Drawing
 	*/
 	public class ImageFill : DynamicBrush, ILoading, IImageContainerOwner, IMemoryResource
 	{
+		internal sealed override Brush Clone()
+		{
+			throw new NotImplementedException();
+		}
+
 		public ImageFill()
 		{
 			_container = new ImageContainer(this);

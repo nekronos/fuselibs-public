@@ -103,6 +103,19 @@ namespace Fuse.Drawing
 	*/
 	public class LinearGradient: DynamicBrush, IPropertyListener
 	{
+
+		internal sealed override Brush Clone()
+		{
+			var linearGradinet = new LinearGradient();
+			linearGradinet.StartPoint = StartPoint;
+			linearGradinet.EndPoint = EndPoint;
+			linearGradinet.Angle = Angle;
+			linearGradinet.Interpolation = Interpolation;
+			foreach (var gradientStop in SortedStops)
+				linearGradinet.Stops.Add(new GradientStop(gradientStop.Color, gradientStop.Offset));
+			return linearGradinet;
+		}
+
 		static Selector _stopsName = "Stops";
 		static Selector _stopOffsetName = "Offset";
 		static Selector _stopColorName = "Color";
