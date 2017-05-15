@@ -1,0 +1,3 @@
+<Fuse.Graphics.GraphicsViewBase ux:Class="Fuse.Graphics.GraphicsView">
+	<Fuse.Graphics.Android.TextureView ux:Condition="Android" ux:Template="AndroidAppearance" SurfaceTextureListener="this" />
+</Fuse.Graphics.GraphicsViewBase>

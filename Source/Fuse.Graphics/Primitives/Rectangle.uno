@@ -7,7 +7,7 @@ using Fuse.Drawing;
 using Fuse.Drawing.Primitives;
 using Fuse.Drawing.Internal;
 
-namespace Fuse.Android.GL.Primitives
+namespace Fuse.Graphics.Primitives
 {
 	block Common
 	{

@@ -3,7 +3,7 @@ using Uno.UX;
 using Uno.Compiler.ExportTargetInterop;
 using Fuse.Controls.Native;
 
-namespace Fuse.Android.GL
+namespace Fuse.Graphics.Android
 {
 	extern(!Android)
 	interface ISurfaceTextureListener {}

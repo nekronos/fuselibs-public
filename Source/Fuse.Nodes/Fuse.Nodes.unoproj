@@ -8,7 +8,7 @@
   },
   "InternalsVisibleTo": [
     "Fuse.Android",
-    "Fuse.Android.GL",
+    "Fuse.Graphics",
     "Fuse.Views",
     "Fuse.Animations",
     "Fuse.Controls.Native",

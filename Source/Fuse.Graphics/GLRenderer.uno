@@ -8,8 +8,9 @@ using Fuse.Elements;
 using Fuse.Controls;
 using Uno.Graphics;
 using Uno.Compiler.ExportTargetInterop;
+using Fuse.Graphics.Android;
 
-namespace Fuse.Android.GL
+namespace Fuse.Graphics
 {
 	[ForeignInclude(Language.Java, "com.android.grafika.gles.*", " 	android.graphics.SurfaceTexture", "android.opengl.GLES20")]
 	extern(Android) class Renderer : IDisposable
@@ -69,8 +70,6 @@ namespace Fuse.Android.GL
 	extern(Android)
 	class RenderControl : IDisposable
 	{
-		ConcurrentQueue<ImmutableViewport> _renderingQueue = new ConcurrentQueue<ImmutableViewport>();
-
 		object _surfaceTexture;
 		Thread _renderingThread;
 
@@ -87,18 +86,15 @@ namespace Fuse.Android.GL
 			var renderer = new Renderer(_surfaceTexture);
 			while (_running)
 			{
-				ImmutableViewport viewport = null;
-				if (_renderingQueue.TryDequeue(out viewport))
-				{
-					renderer.Draw(viewport);
-				}
+				if defined(CPLUSPLUS)
+					extern "uAutoReleasePool ____pool";
 			}
 			renderer.Dispose();
 		}
 
 		public void EnqueueFrame(ImmutableViewport viewport)
 		{
-			_renderingQueue.Enqueue(viewport);
+
 		}
 
 		public void Dispose()
@@ -106,7 +102,6 @@ namespace Fuse.Android.GL
 			_running = false;
 			_renderingThread.Join();
 			_renderingThread = null;
-			_renderingQueue = null;
 		}
 	}
 
@@ -123,9 +118,7 @@ namespace Fuse.Android.GL
 		{
 			if (_renderControl != null)
 			{
-
 				_renderControl.EnqueueFrame(viewport);
-
 			}
 		}
 
@@ -151,9 +144,13 @@ namespace Fuse.Android.GL
 
 		}
 
+		int _handleCounter = 0;
+		Dictionary<Element, int> _elements = new Dictionary<Element, int>();
+
 		void ITreeRenderer.RootingStarted(Element e)
 		{
-
+			var handle = _handleCounter++;
+			_elements.Add(e, handle);
 		}
 
 		void ITreeRenderer.Rooted(Element e)
