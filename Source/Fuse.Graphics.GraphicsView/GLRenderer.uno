@@ -5,33 +5,47 @@ using Uno.Threading;
 using Fuse;
 using Fuse.Drawing;
 using Fuse.Elements;
+using Fuse.Controls;
 using Uno.Graphics;
 using Uno.Compiler.ExportTargetInterop;
 using Fuse.Graphics.Android;
-using Fuse.Graphics.Commands;
 
 namespace Fuse.Graphics
 {
 	class GLRenderer : ITreeRenderer, ISurfaceTextureListener
 	{
 
-		ConcurrentQueue<Frame> _frameQueue = new ConcurrentQueue<Frame>();
-
 		public GLRenderer()
 		{
 
 		}
 
+
 		public void EnqueueFrame(ImmutableViewport viewport)
 		{
+			if (_renderControl != null)
+				_renderControl.EnqueueFrame(new Frame(viewport, CollectCommands()));
+		}
 
+		Command[] CollectCommands()
+		{
+			var commands = _pendingCommands.ToArray();
+			_pendingCommands.Clear();
+			return commands;
+		}
+
+		List<Command> _pendingCommands = new List<Command>();
+
+		void SendCommand(Command command)
+		{
+			_pendingCommands.Add(command);
 		}
 
 		RenderControl _renderControl;
 
 		extern(Android) void ISurfaceTextureListener.OnAvailable(object surfaceTexture, int width, int height)
 		{
-			_renderControl = new RenderControl(surfaceTexture, _frameQueue);
+			_renderControl = new RenderControl(surfaceTexture);
 		}
 
 		extern(Android) bool ISurfaceTextureListener.OnDestroyed(object surfaceTexture)
@@ -46,7 +60,7 @@ namespace Fuse.Graphics
 
 		extern(Android) void ISurfaceTextureListener.OnUpdated(object surfaceTexture)
 		{
-
+			//debug_log("ISurfaceTextureListener.OnUpdated @ " + UpdateManager.FrameIndex);
 		}
 
 		int _handleCounter = 0;
@@ -56,6 +70,13 @@ namespace Fuse.Graphics
 		{
 			var handle = Handle.NewHandle();
 			_elements.Add(e, handle);
+
+			var control = e as Control;
+			if (control != null)
+			{
+				var del = control.NewDrawableDelegateInternal(new Context(handle, SendCommand));
+				control.DrawableDelegate = del;
+			}
 		}
 
 		void ITreeRenderer.Rooted(Element e)
@@ -65,7 +86,13 @@ namespace Fuse.Graphics
 
 		void ITreeRenderer.Unrooted(Element e)
 		{
-
+			var control = e as Control;
+			if (control != null && control.DrawableDelegate != null)
+			{
+				control.DrawableDelegate.Dispose();
+				control.DrawableDelegate = null;
+			}
+			_elements.Remove(e);
 		}
 
 		void ITreeRenderer.BackgroundChanged(Element e, Brush background)
@@ -75,12 +102,12 @@ namespace Fuse.Graphics
 
 		void ITreeRenderer.TransformChanged(Element e)
 		{
-
+			SendCommand(new UpdateTransform(_elements[e], e.WorldTransform));
 		}
 
 		void ITreeRenderer.Placed(Element e)
 		{
-
+			SendCommand(new UpdateSize(_elements[e], e.ActualSize));
 		}
 
 		void ITreeRenderer.IsVisibleChanged(Element e, bool isVisible)

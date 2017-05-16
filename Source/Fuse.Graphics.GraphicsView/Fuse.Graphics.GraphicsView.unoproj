@@ -12,6 +12,7 @@
   "Projects": [
     "../Fuse.Graphics/Fuse.Graphics.unoproj",
     "../Fuse.Elements/Fuse.Elements.unoproj",
+    "../Fuse.Controls/Fuse.Controls.unoproj",
     "../Fuse.Controls.Panels/Fuse.Controls.Panels.unoproj",
     "../Fuse.Controls.Native/Fuse.Controls.Native.unoproj",
     "../Fuse.Drawing/Fuse.Drawing.unoproj",

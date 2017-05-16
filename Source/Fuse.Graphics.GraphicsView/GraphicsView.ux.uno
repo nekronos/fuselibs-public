@@ -66,6 +66,8 @@ namespace Fuse.Graphics
 
 			_frustum.LocalFromWorld = WorldTransformInverse;
 			_frustumViewport.Update(this, _frustum);
+
+			_treeRenderer.EnqueueFrame(NewRenderViewport());
 		}
 
 		void ISurfaceTextureListener.OnAvailable(object surfaceTexture, int width, int height)

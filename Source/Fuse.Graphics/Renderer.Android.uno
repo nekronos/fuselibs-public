@@ -8,7 +8,6 @@ using Fuse.Elements;
 using Uno.Graphics;
 using Uno.Compiler.ExportTargetInterop;
 using Fuse.Graphics.Android;
-using Fuse.Graphics.Commands;
 
 namespace Fuse.Graphics
 {
@@ -79,41 +78,94 @@ namespace Fuse.Graphics
 		}
 	}
 
+	class DrawableControl
+	{
+		Dictionary<Handle, Drawable> _drawables = new Dictionary<Handle,Drawable>();
+		List<Drawable> _renderingList = new List<Drawable>();
+
+		public List<Drawable> RenderingList
+		{
+			get { return _renderingList; }
+		}
+
+		public void Root(Handle handle, Drawable drawable)
+		{
+			_drawables.Add(handle, drawable);
+			_renderingList.Add(drawable);
+		}
+
+		public void Unroot(Handle handle)
+		{
+			Drawable drawable;
+			if (_drawables.TryGetValue(handle, out drawable))
+			{
+				_renderingList.Remove(drawable);
+				drawable.Dispose();
+				_drawables.Remove(handle);
+			}
+		}
+
+		public bool TryGetDrawable(Handle handle, out Drawable drawable)
+		{
+			return _drawables.TryGetValue(handle, out drawable);
+		}
+	}
+
 	class RenderControl : IDisposable
 	{
 		object _surfaceTexture;
 		Thread _renderingThread;
 		bool _running = true;
 
-		ConcurrentQueue<Frame> _frameQueue;
+		ConcurrentQueue<Frame> _frameQueue = new ConcurrentQueue<Frame>();
+		AutoResetEvent _resetEvent = new AutoResetEvent(true);
 
-		public RenderControl(object surfaceTexture, ConcurrentQueue<Frame> frameQueue)
+		public RenderControl(object surfaceTexture)
 		{
 			_surfaceTexture = surfaceTexture;
-			_frameQueue = frameQueue;
 			_renderingThread = new Thread(Entrypoint);
 			_renderingThread.Start();
+		}
+
+		public void EnqueueFrame(Frame frame)
+		{
+			_frameQueue.Enqueue(frame);
+			_resetEvent.Set();
 		}
 
 		extern(!Android) void Entrypoint() {}
 		extern(Android) void Entrypoint()
 		{
+			var drawableControl = new DrawableControl();
 			var renderer = new Renderer(_surfaceTexture);
 			while (_running)
 			{
+				_resetEvent.WaitOne();
+				var t1 = Uno.Diagnostics.Clock.GetSeconds();
 				if defined(CPLUSPLUS)
 					extern "uAutoReleasePool ____pool";
 
 				Frame frame = null;
-				if (_frameQueue.TryDequeue(out frame))
+				while (_frameQueue.TryDequeue(out frame))
 				{
-					var viewport = frame.Viewport;
 					foreach (var command in frame.Commands)
-						command.Perform(this);
+						command.Perform(drawableControl);
+
+					renderer.Draw(frame.Viewport, drawableControl.RenderingList);
 				}
+
+				var t2 = Uno.Diagnostics.Clock.GetSeconds();
+				var elapsed = t2 - t1;
+				//Log("Frametime: " + (elapsed * 1000.0) + " ms");
 			}
 			renderer.Dispose();
 		}
+
+		[Foreign(Language.Java)]
+		extern(Android) static void Log(string msg)
+		@{
+			android.util.Log.d("XXXXXXXXXXXXXXXXXXXXXX", msg);
+		@}
 
 		public void Dispose()
 		{
