@@ -3,11 +3,12 @@ using Uno.Graphics;
 
 using Fuse;
 using Fuse.Elements;
+using Fuse.Graphics;
 using Fuse.Drawing;
 using Fuse.Drawing.Primitives;
 using Fuse.Drawing.Internal;
 
-namespace Fuse.Graphics.Primitives
+namespace Fuse.Controls.Internal
 {
 	block Common
 	{
