@@ -420,6 +420,33 @@ namespace Fuse.Controls
 
 				ns.Update(fills, strokes, Viewport.PixelsPerPoint);
 			}
+
+			var d = DrawableDelegate;
+			if (d != null)
+			{
+				var fills = HasFills ? CloneFills() : null;
+				var strokes = HasStrokes ? CloneStrokes() : null;
+
+				d.SendCommand(new UpdateFills(d.Handle, fills));
+				d.SendCommand(new UpdateStrokes(d.Handle, strokes));
+				d.SendCommand(new UpdateSmoothness(d.Handle, Smoothness));
+			}
+		}
+
+		Brush[] CloneFills()
+		{
+			var list = new List<Brush>();
+			foreach (var fill in Fills)
+				list.Add(fill.Clone());
+			return list.ToArray();
+		}
+
+		Stroke[] CloneStrokes()
+		{
+			var list = new List<Stroke>();
+			foreach (var stroke in Strokes)
+				list.Add(stroke.Clone());
+			return list.ToArray();
 		}
 
 		protected override void PushPropertiesToNativeView()
@@ -427,12 +454,145 @@ namespace Fuse.Controls
 			base.PushPropertiesToNativeView();
 			UpdateNativeShape();
 		}
-		
+
 		protected override void ArrangePaddingBox(LayoutParams lp)
 		{
 			base.ArrangePaddingBox(lp);
 			InvalidateSurfacePath();
 		}
-		
+
+	}
+
+	abstract class ShapeDrawable : Fuse.Graphics.Drawable
+	{
+
+		public float Smoothness;
+
+		public Brush[] Fills
+		{
+			get { return _fills; }
+			set
+			{
+				UnpinFills();
+				_fills = value;
+			}
+		}
+		public Stroke[] Strokes
+		{
+			get { return _strokes; }
+			set
+			{
+				UnpinStrokes();
+				_strokes = value;
+			}
+		}
+
+		Brush[] _fills;
+		Stroke[] _strokes;
+
+		bool _fillsReady;
+		bool _strokesReady;
+
+		void PinFills()
+		{
+			if (!_fillsReady && _fills != null)
+			{
+				foreach (var fill in _fills)
+					fill.Pin();
+				_fillsReady = true;
+			}
+		}
+
+		void UnpinFills()
+		{
+			if (_fillsReady && _fills != null)
+			{
+				foreach (var fill in _fills)
+					fill.Unpin();
+				_fillsReady = false;
+			}
+		}
+
+
+		void PinStrokes()
+		{
+			if (!_strokesReady && _strokes != null)
+			{
+				foreach(var stroke in _strokes)
+					stroke.Brush.Pin();
+				_strokesReady = true;
+			}
+		}
+
+		void UnpinStrokes()
+		{
+			if (_strokesReady && _strokes != null)
+			{
+				foreach(var stroke in _strokes)
+					stroke.Brush.Unpin();
+				_strokesReady = false;
+			}
+		}
+
+		public override void Draw(IRenderViewport viewport, DrawContext dc)
+		{
+			if (Fills != null)
+			{
+				PinFills();
+				foreach (var fill in Fills)
+					fill.Prepare(dc, Size);
+			}
+			if (Strokes != null)
+			{
+				PinStrokes();
+				foreach (var stroke in Strokes)
+					stroke.Brush.Prepare(dc, Size);
+			}
+		}
+
+		public override void Dispose()
+		{
+			UnpinFills();
+			UnpinStrokes();
+		}
+	}
+
+	class UpdateFills : Fuse.Graphics.UpdateDrawable
+	{
+		Brush[] _fills;
+		public UpdateFills(Fuse.Graphics.Handle handle, Brush[] fills) : base(handle)
+		{
+			_fills = fills;
+		}
+		protected override void Perform(Fuse.Graphics.Drawable shapeDrawable)
+		{
+			((ShapeDrawable)shapeDrawable).Fills = _fills;
+		}
+	}
+
+	class UpdateStrokes : Fuse.Graphics.UpdateDrawable
+	{
+		Stroke[] _strokes;
+		public UpdateStrokes(Fuse.Graphics.Handle handle, Stroke[] strokes) : base(handle)
+		{
+			_strokes = strokes;
+		}
+		protected override void Perform(Fuse.Graphics.Drawable shapeDrawable)
+		{
+			((ShapeDrawable)shapeDrawable).Strokes = _strokes;
+		}
+	}
+
+	class UpdateSmoothness : Fuse.Graphics.UpdateDrawable
+	{
+		float _smoothness;
+		public UpdateSmoothness(Fuse.Graphics.Handle handle, float smoothness) : base(handle)
+		{
+			_smoothness = smoothness;
+		}
+		protected override void Perform(Fuse.Graphics.Drawable shapeDrawable)
+		{
+			((ShapeDrawable)shapeDrawable).Smoothness = _smoothness;
+		}
 	}
 }

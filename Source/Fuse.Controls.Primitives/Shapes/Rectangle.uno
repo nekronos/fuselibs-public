@@ -3,6 +3,7 @@ using Uno.UX;
 
 using Fuse.Drawing;
 using Fuse.Controls.Native;
+using Fuse.Graphics;
 
 namespace Fuse.Controls
 {
@@ -80,6 +81,7 @@ namespace Fuse.Controls
 				{
 					nr.CornerRadius = CornerRadius;
 				}
+				UpdateDrawable();
 				OnPropertyChanged(CornerRadiusPropertyName, origin);
 				InvalidateSurfacePath();
 			}
@@ -111,7 +113,47 @@ namespace Fuse.Controls
 			{
 				nr.CornerRadius = CornerRadius;
 			}
+			UpdateDrawable();
+		}
+
+		void UpdateDrawable()
+		{
+			var d = DrawableDelegate;
+			if (d != null)
+				d.SendCommand(new UpdateCornerRadius(d.Handle, CornerRadius));
+		}
+
+		protected override DrawableDelegate NewDrawableDelegate(Context context)
+		{
+			return new DrawableDelegate<RectangleDrawable>(context);
 		}
 	}
-	
+
+	class RectangleDrawable : ShapeDrawable
+	{
+		public float4 CornerRadius;
+
+		public override void Draw(IRenderViewport viewport, DrawContext dc)
+		{
+			base.Draw(viewport, dc);
+			foreach (var fill in Fills)
+				Fuse.Controls.Internal.Rectangle.Singleton.Fill(viewport, dc, this, Size, CornerRadius, fill, float2(0.0f), Smoothness);
+
+			foreach (var stroke in Strokes)
+				Fuse.Controls.Internal.Rectangle.Singleton.Stroke(viewport, dc, this, Size, CornerRadius, stroke, float2(0.0f), Smoothness);
+		}
+	}
+
+	class UpdateCornerRadius : Fuse.Graphics.UpdateDrawable
+	{
+		float4 _cornerRadius;
+		public UpdateCornerRadius(Fuse.Graphics.Handle handle, float4 cornerRadius) : base(handle)
+		{
+			_cornerRadius = cornerRadius;
+		}
+		protected override void Perform(Drawable rect)
+		{
+			((RectangleDrawable)rect).CornerRadius = _cornerRadius;
+		}
+	}
 }
