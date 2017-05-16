@@ -20,6 +20,17 @@ namespace Fuse.Drawing
 
 	public class Stroke: PropertyObject, IPropertyListener
 	{
+
+		public Stroke Clone()
+		{
+			var stroke = new Stroke(Brush.Clone(), Width, LineCap, LineJoin);
+			stroke.Offset = Offset;
+			stroke.Adjustment = Adjustment;
+			stroke.Alignment = Alignment;
+			stroke.LineJoinMiterLimit = LineJoinMiterLimit;
+			return stroke;
+		}
+
 		//https://github.com/fusetools/fuselibs/issues/3655
 		static Selector _shadingName = "Shading";
 		void IPropertyListener.OnPropertyChanged(PropertyObject obj, Selector prop)

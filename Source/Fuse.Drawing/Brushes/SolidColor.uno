@@ -63,7 +63,7 @@ namespace Fuse.Drawing
 			_color = color;
 		}
 
-		internal sealed override Brush Clone()
+		public sealed override Brush Clone()
 		{
 			return new SolidColor(Color);
 		}
@@ -88,7 +88,7 @@ namespace Fuse.Drawing
 		}
 
 		// StaticSolidColor is immutable, so we can return this
-		internal sealed override Brush Clone()
+		public sealed override Brush Clone()
 		{
 			return this;
 		}

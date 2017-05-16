@@ -75,7 +75,7 @@ namespace Fuse.Drawing
 		protected virtual void OnPinned() { }
 		protected virtual void OnUnpinned() { }
 
-		internal abstract Brush Clone();
+		public abstract Brush Clone();
 	}
 
 	public abstract class StaticBrush: Brush {}

@@ -104,7 +104,7 @@ namespace Fuse.Drawing
 	public class LinearGradient: DynamicBrush, IPropertyListener
 	{
 
-		internal sealed override Brush Clone()
+		public sealed override Brush Clone()
 		{
 			var linearGradinet = new LinearGradient();
 			linearGradinet.StartPoint = StartPoint;
