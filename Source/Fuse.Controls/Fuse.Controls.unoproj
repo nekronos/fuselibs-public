@@ -8,6 +8,7 @@
   },
   "InternalsVisibleTo": [
     "Fuse.Controls.Primitives",
+    "Fuse.Graphics.GraphicsView",
     "Fuse.Android",
     "Fuse.Controls.Test",
     "Fuse.Controls.Panels",
@@ -17,6 +18,7 @@
     "Fuse.iOS.Bindings",
   ],
   "Projects": [
+    "../Fuse.Graphics/Fuse.Graphics.unoproj",
     "../Fuse.Animations/Fuse.Animations.unoproj",
     "../Fuse.Common/Fuse.Common.unoproj",
     "../Fuse.Nodes/Fuse.Nodes.unoproj",

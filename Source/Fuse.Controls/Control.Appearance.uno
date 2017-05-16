@@ -1,6 +1,7 @@
 using Uno;
 using Uno.UX;
 using Fuse.Controls.Native;
+using Fuse.Graphics;
 
 namespace Fuse.Controls
 {
@@ -49,6 +50,18 @@ namespace Fuse.Controls
 		internal IView InstantiateNativeView()
 		{
 			return CreateNativeView();
+		}
+
+		public DrawableDelegate DrawableDelegate { get; internal set; }
+
+		protected virtual DrawableDelegate NewDrawableDelegate(Context context)
+		{
+			return null;
+		}
+
+		internal DrawableDelegate NewDrawableDelegateInternal(Context context)
+		{
+			return NewDrawableDelegate(context);
 		}
 
 		protected override float2 GetContentSize(LayoutParams lp)
