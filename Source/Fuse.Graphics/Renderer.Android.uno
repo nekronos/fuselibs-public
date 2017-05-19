@@ -8,6 +8,7 @@ using Fuse.Elements;
 using Uno.Graphics;
 using Uno.Compiler.ExportTargetInterop;
 using Fuse.Graphics.Android;
+using OpenGL;
 
 namespace Fuse.Graphics
 {
@@ -40,13 +41,16 @@ namespace Fuse.Graphics
 			dc.PopScissor();
 			dc.PopViewport();
 
+			GL.Flush();
+			GL.Finish();
+
 			SwapBuffers(_windowSurface);
 		}
 
 		[Foreign(Language.Java)]
-		void SwapBuffers(Java.Object windowSurface)
+		bool SwapBuffers(Java.Object windowSurface)
 		@{
-			((WindowSurface)windowSurface).swapBuffers();
+			return ((WindowSurface)windowSurface).swapBuffers();
 		@}
 
 		[Foreign(Language.Java)]
@@ -153,19 +157,11 @@ namespace Fuse.Graphics
 
 					renderer.Draw(frame.Viewport, drawableControl.RenderingList);
 				}
-
 				var t2 = Uno.Diagnostics.Clock.GetSeconds();
-				var elapsed = t2 - t1;
-				//Log("Frametime: " + (elapsed * 1000.0) + " ms");
+				//debug_log("Frametime: " + ((t2 - t1) * 1000.0) + " ms");
 			}
 			renderer.Dispose();
 		}
-
-		[Foreign(Language.Java)]
-		extern(Android) static void Log(string msg)
-		@{
-			android.util.Log.d("XXXXXXXXXXXXXXXXXXXXXX", msg);
-		@}
 
 		public void Dispose()
 		{

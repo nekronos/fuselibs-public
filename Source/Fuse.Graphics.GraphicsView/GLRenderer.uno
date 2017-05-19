@@ -20,7 +20,6 @@ namespace Fuse.Graphics
 
 		}
 
-
 		public void EnqueueFrame(ImmutableViewport viewport)
 		{
 			if (_renderControl != null)
@@ -46,6 +45,7 @@ namespace Fuse.Graphics
 		extern(Android) void ISurfaceTextureListener.OnAvailable(object surfaceTexture, int width, int height)
 		{
 			_renderControl = new RenderControl(surfaceTexture);
+			//debug_log("ISurfaceTextureListener.OnAvailable");
 		}
 
 		extern(Android) bool ISurfaceTextureListener.OnDestroyed(object surfaceTexture)
@@ -63,7 +63,6 @@ namespace Fuse.Graphics
 			//debug_log("ISurfaceTextureListener.OnUpdated @ " + UpdateManager.FrameIndex);
 		}
 
-		int _handleCounter = 0;
 		Dictionary<Element, Handle> _elements = new Dictionary<Element, Handle>();
 
 		void ITreeRenderer.RootingStarted(Element e)
