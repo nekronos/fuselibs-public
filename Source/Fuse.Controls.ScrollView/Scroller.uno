@@ -72,6 +72,8 @@ namespace Fuse.Gestures
 
 		protected override void OnUnrooted()
 		{
+			StopInvalidateVisual();
+
 			_scrollable.RemovePropertyListener(this);
 			_scrollable.RequestBringIntoView -= OnRequestBringIntoView;
 			_scrollable.ScrollPositionChanged -= OnScrollPositionChanged;
@@ -198,9 +200,26 @@ namespace Fuse.Gestures
 		{
 			get { return _scrollable == null ? GesturePriority.Lower : _scrollable.GesturePriority; }
 		}
+
+		bool _pressed;
+		void StartInvalidateVisual()
+		{
+			if (!_pressed)
+				UpdateManager.AddAction(_scrollable.InvalidateVisual);
+			_pressed = true;
+		}
+		void StopInvalidateVisual()
+		{
+			if (_pressed)
+				UpdateManager.RemoveAction(_scrollable.InvalidateVisual);
+			_pressed = false;
+		}
+
+		
 		
 		GestureRequest IGesture.OnPointerPressed(PointerPressedArgs args)
 		{
+			StartInvalidateVisual();
 			//TODO: the use of 100 is kind of magical!
 			_significance = Vector.Length(_region.Velocity) > hardCaptureVelocityThreshold ? 100 : 0;
 			return GestureRequest.Capture;
@@ -226,6 +245,7 @@ namespace Fuse.Gestures
 
 		void IGesture.OnLostCapture( bool forced ) 
 		{ 
+			StopInvalidateVisual();
 			_significance = 0;
 			if (_region != null && _region.IsUser)
 				_region.EndUser();
@@ -279,6 +299,8 @@ namespace Fuse.Gestures
 
 		GestureRequest IGesture.OnPointerReleased(PointerReleasedArgs args)
 		{
+			StopInvalidateVisual();
+
 			if (_delayStart && !_gesture.IsHardCapture)
 				return GestureRequest.Cancel;
 
