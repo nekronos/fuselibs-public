@@ -100,10 +100,11 @@ namespace Fuse
 			{
 				// iterate over a copy of the list to prevent problems when
 				// behaviors add/remove childen during rooting
-				var children = Children.ToArray();
-
-				for (int i = 0; i < children.Length; i++)
-					children[i].RootInternal(this);
+				using (var iter = _children.GetEnumeratorVersionedStruct())
+				{
+					while (iter.MoveNext())
+						iter.Current.RootInternal(this);
+				}
 			}
 
 			//this forces an invalidation now that we're rooted (ensures no old stale value is there)
@@ -138,10 +139,11 @@ namespace Fuse
 			{
 				// iterate over a copy of the list to prevent problems when
 				// behaviors add/remove childen during rooting
-				var children = Children.ToArray();
-
-				for (int i = 0; i < children.Length; i++)
-					children[i].UnrootInternal();
+				using (var iter = _children.GetEnumeratorVersionedStruct())
+				{
+					while (iter.MoveNext())
+						iter.Current.UnrootInternal();
+				}
 			}
 
 			ConcludePendingRemove();
