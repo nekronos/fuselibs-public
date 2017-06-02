@@ -1,5 +1,8 @@
 # Unreleased
 
+## ScrollView performance 
+- Improved perceived ScrollView performance by preventing caching while pointers are pressed on them, avoiding inconsistent framerates.
+
 ## Native
 - Added feature toggle for implicit `GraphicsView`. If you are making an app using only Native UI disabling the implicit `GraphicsView` can increase performance. Disable the `GraphicsView` by defining `DISABLE_IMPLICIT_GRAPHICSVIEW` when building. For example `uno build -t=ios -DDISABLE_IMPLICIT_GRAPHICSVIEW`
 
@@ -31,11 +34,16 @@
 
 ## ImageTools
 - Added supported for encoding/decoding images to/from base64 on DotNet platforms, including Windows and Mac OS X.
+
+## Bugfixes
+- Fixes a bug where the app would crash if a databinding resolved to an incompatible type (e.g. binding a number property to a boolean value). (Marshal.TryConvertTo would throw exception instead of fail gracefully).
+
 ## Bug in Container
 - Fixed bug in Container which caused crash when the container had no subtree nodes. This caused the Fuse.MaterialDesign community package to stop working.
 
 ## Fuse.Controls.Video
 - Fixed a bug where we would trigger errors on Android if a live-stream was seeked or paused.
+- Fixed a bug where HLS streams would become zero-sized on iOS.
 
 
 ## 1.0
