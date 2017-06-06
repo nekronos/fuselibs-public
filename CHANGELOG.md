@@ -1,5 +1,7 @@
 # Unreleased
 
+## ScrollingAnimation: Fixed issue where the animation could become out of sync if the properties on ScrollingAnimation were updated.
+
 ## macOS SIGILL problems
 - Updated the bundled Freetype library on macOS to now (again) include both 32-bit and 64-bit symbols, which fixes an issue where .NET and preview builds would crash with a SIGILL at startup when running on older Mac models.
 - Updated the bundled libjpeg, libpng, Freetype, and SDL2 libaries for macOS to not use AVX instructions, since they are incompatible with the CPUs in some older Mac models. This fixes an issue with SIGILLs in native builds.
