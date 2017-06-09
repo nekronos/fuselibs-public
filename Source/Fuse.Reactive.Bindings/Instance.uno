@@ -351,7 +351,7 @@ namespace Fuse.Reactive
 		}
 		
 		//contains only the added nodes (not all data items)
-		List<WindowItem> _windowItems = new List<WindowItem>();
+		Fuse.Internal.ObjectList<WindowItem> _windowItems = new Fuse.Internal.ObjectList<WindowItem>();
 
 		internal int WindowItemsCount { get { return _windowItems.Count; } }
 		
@@ -629,7 +629,7 @@ namespace Fuse.Reactive
 			if (_windowItems.Count == 0) return;
 
 			var items = _windowItems;
-			_windowItems = new List<WindowItem>();
+			_windowItems = new Fuse.Internal.ObjectList<WindowItem>();
 
 			for (int i = 0; i < items.Count; i++)
 			{
