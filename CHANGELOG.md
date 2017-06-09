@@ -10,6 +10,8 @@
 ## Image
 - A failed to load Image with a Url will now try again when the Url is used again in a new Image
 - Added `reload` and `retry` JavaScript functions on `Image` to allow reloading failed images.
+## ScrollingAnimation
+- Fixed issue where the animation could become out of sync if the properties on ScrollingAnimation were updated.
 
 ## macOS SIGILL problems
 - Updated the bundled Freetype library on macOS to now (again) include both 32-bit and 64-bit symbols, which fixes an issue where .NET and preview builds would crash with a SIGILL at startup when running on older Mac models.
@@ -46,11 +48,16 @@
 
 ## ImageTools
 - Added supported for encoding/decoding images to/from base64 on DotNet platforms, including Windows and Mac OS X.
+
+## Bugfixes
+- Fixes a bug where the app would crash if a databinding resolved to an incompatible type (e.g. binding a number property to a boolean value). (Marshal.TryConvertTo would throw exception instead of fail gracefully).
+
 ## Bug in Container
 - Fixed bug in Container which caused crash when the container had no subtree nodes. This caused the Fuse.MaterialDesign community package to stop working.
 
 ## Fuse.Controls.Video
 - Fixed a bug where we would trigger errors on Android if a live-stream was seeked or paused.
+- Fixed a bug where HLS streams would become zero-sized on iOS.
 
 
 ## 1.0
