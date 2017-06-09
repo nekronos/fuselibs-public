@@ -22,6 +22,8 @@ On iOS you can now put the following in your unoproj file:
     },
 ```
 which will stop push notifications registering (and potentially asking for permissions) on launch. Your must then call `register()` from JS when you wish to begin using push notifications. On android this option & register are silently ignored.
+## ImageTools
+- Fixed bug in Android implementation that could result in errors due to prematurely recycled bitmaps
 
 ## Image
 - Fixed issue where an `<Image />` could fail to display inside a `<NativeViewHost />` on iOS
