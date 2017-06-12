@@ -30,7 +30,7 @@ namespace Fuse.Elements
 		bool _isValid;
 
 		[WeakReference]
-		readonly Element _element;
+		public readonly Element _element;
 
 		Recti _cacheRect;
 		CacheTile[] _cacheTiles;
@@ -204,6 +204,14 @@ namespace Fuse.Elements
 	{
 		public void Blit(DrawContext dc, Cache cache, float opacity)
 		{
+			{
+				var e = cache._element;
+				var d = e.Viewport.PixelsPerPoint;
+				var p = e.ActualPosition * d;
+				var s = e.ActualSize * d;
+				Fuse.FillRate.ReportPixelsDrawn(e, p, s, "!!!!!!!DRAWING CACHED!!!!!!!!");
+			}
+
 			foreach (CacheTile tile in cache.CacheTiles)
 			{
 				draw

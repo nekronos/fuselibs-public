@@ -18,6 +18,9 @@ namespace Fuse.Controls.Primitives
 		{
 			base.OnRooted();
 
+			LineNumber = Parent.LineNumber;
+			FileName = Parent.FileName;
+
 			_rectangleParent = Parent as Rectangle;
 			if (_rectangleParent != null)
 				_rectangleParent.AddPropertyListener(this);

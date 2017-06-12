@@ -178,6 +178,7 @@ namespace Fuse.Effects
 
 			public void Blit(DrawContext dc, Element element, Rect elementRect, float padding, int2 tempSize, texture2D blurTexture, float spreadScale, float2 offset, float4 color)
 			{
+				Fuse.FillRate.ReportPixelsDrawn(element, elementRect.Minimum + offset - padding, float2(tempSize.X, tempSize.Y));
 				draw Fuse.Drawing.Planar.Image
 				{
 					DrawContext: dc;

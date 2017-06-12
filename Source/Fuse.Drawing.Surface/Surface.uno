@@ -131,7 +131,10 @@ namespace Fuse.Drawing
 			PushTransform(m);
 			DrawLocal(drawable);
  			End();
- 			
+
+ 			var density = elm.Viewport.PixelsPerPoint;
+			Fuse.FillRate.ReportPixelsDrawn(elm, elm.ActualPosition * density, elm.ActualSize * density);
+
 			draw Fuse.Drawing.Planar.Image
 			{
 				DrawContext: dc;

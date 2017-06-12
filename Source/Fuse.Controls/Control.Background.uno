@@ -135,6 +135,8 @@ namespace Fuse.Internal.Drawing
 
 		public void DrawElement(DrawContext dc, Element element, Brush brush, float opacity)
 		{
+			var density = element.Viewport.PixelsPerPoint;
+			Fuse.FillRate.ReportPixelsDrawn(element, element.ActualPosition * density, element.ActualSize * density, "Control.Background");
 			draw
 			{
 				apply Fuse.Drawing.Planar.Rectangle;

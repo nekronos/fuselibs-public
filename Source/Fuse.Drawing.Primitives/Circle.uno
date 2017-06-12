@@ -79,7 +79,9 @@ namespace Fuse.Drawing.Primitives
 		{
 			if (_bufferVertex == null)
 				InitBuffers();
-				
+
+			Fuse.FillRate.ReportPixelsDrawn(visual, visual.ActualPosition * visual.Viewport.PixelsPerPoint, float2(radius*2) * visual.Viewport.PixelsPerPoint, this.ToString() + " " + brush.ToString());
+
 			draw
 			{
 				apply Common;

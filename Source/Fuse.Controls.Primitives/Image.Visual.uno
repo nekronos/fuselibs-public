@@ -143,6 +143,10 @@ namespace Fuse.Controls
 	                     Texture2D tex, ResampleMode resampleMode,
 		                 float4 Color )
 		{
+			var density = element.Viewport.PixelsPerPoint;
+			var pixelSize = size * density;
+			var position = offset * density;
+			Fuse.FillRate.ReportPixelsDrawn(element, position, pixelSize);
 			draw
 			{
 				apply Fuse.Drawing.Planar.Image;

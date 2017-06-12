@@ -309,6 +309,8 @@ namespace Fuse.Drawing.Primitives
 			if (_bufferDistance == null)
 				InitBuffers();
 
+			Fuse.FillRate.ReportPixelsDrawn(visual, position * visual.Viewport.PixelsPerPoint, Size * visual.Viewport.PixelsPerPoint, this.ToString() + " " + brush.ToString());
+
 			var mn = Math.Min(Size.X/2, Size.Y/2);
 			for (int i=0; i < 4; ++i)
 				CornerRadius[i] = Math.Clamp(CornerRadius[i],0,mn);
