@@ -194,11 +194,6 @@ namespace Fuse.Android
 	public class RootGraphicsViewBase : GraphicsView, IGraphicsView
 	{
 
-		public int GetTextureName()
-		{
-			return _textureName;
-		}
-
 		protected override IGraphicsView InternalGraphicsView { get { return this; } }
 
 		[Foreign(Language.Java)]
@@ -263,6 +258,9 @@ namespace Fuse.Android
 				_framebufferName = param[0];
 				_textureName = param[1];
 			}
+
+			Uno.VrEntryPoint.SetTexture(_textureName);
+
 			BindFramebuffer(_framebufferName);
 			return true;
 		}
