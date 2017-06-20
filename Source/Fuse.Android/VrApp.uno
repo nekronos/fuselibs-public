@@ -10,6 +10,14 @@ namespace Fuse
 	using Fuse.Controls.Native;
 	using Fuse.Android;
 
+	extern (Android && !Oculus && !Library) public class VrApp
+	{
+		public static int GetTextureName()
+		{
+			return 0;
+		}
+	}
+
 	extern (Android && Oculus && !Library) public abstract class VrApp: AppBase
 	{
 		public static VrApp Instance
