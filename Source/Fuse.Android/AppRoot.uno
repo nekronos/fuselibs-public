@@ -26,9 +26,12 @@ namespace Fuse.Android
 
 		static AppRoot()
 		{
-			_rootContainer = CreateRootView();
-			_viewHandle = new ViewHandle(_rootContainer);
-			SetAppRoot(_rootContainer);
+			if defined(!OCULUS && !OCULUS2)
+			{
+				_rootContainer = CreateRootView();
+				_viewHandle = new ViewHandle(_rootContainer);
+				SetAppRoot(_rootContainer);
+			}
 		}
 
 		public static void SetRootView(ViewHandle handle)

@@ -8,7 +8,7 @@ using Uno.Graphics;
 namespace Fuse.Android
 {
 
-	extern(!OCULUS)
+	extern(!OCULUS && !OCULUS2)
 	public class RootGraphicsViewBase : GraphicsView {}
 
 	extern(ANDROID)
@@ -187,5 +187,78 @@ namespace Fuse.Android
 			windowSurface.makeCurrent();
 		@}
 
+	}
+
+	[ForeignInclude(Language.Java, "android.opengl.GLES20", "java.nio.IntBuffer")]
+	extern(OCULUS2 && ANDROID)
+	public class RootGraphicsViewBase : GraphicsView, IGraphicsView
+	{
+
+		protected override IGraphicsView InternalGraphicsView { get { return this; } }
+
+		[Foreign(Language.Java)]
+		bool InitializeGL(int width, int height, int[] framebufferNameOut)
+		@{
+			int[] framebufferNames = new int[1];
+			GLES20.glGenFramebuffers(1, framebufferNames, 0);
+
+			int framebufferName = framebufferNames[0];
+
+			GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebufferName);
+
+			IntBuffer renderedTexNames = IntBuffer.allocate(1);
+			GLES20.glGenTextures(1, renderedTexNames);
+
+			int textureName = renderedTexNames.array()[0];
+
+			GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureName);
+
+			GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null);
+
+			GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+			GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+
+			GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, textureName, 0);
+
+			if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE)
+				return false;
+			else
+			{
+				framebufferNameOut.set(0, framebufferName);
+				return true;
+			}
+		@}
+
+		[Foreign(Language.Java)]
+		void BindFramebuffer(int name)
+		@{
+			GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, name);
+		@}
+
+		int _framebufferName = 0;
+
+		bool IGraphicsView.BeginDraw(int2 size)
+		{
+			if (size.X == 0 || size.Y == 0)
+				return false;
+
+			if (_framebufferName == 0)
+			{
+				var frameBufferNameArray = new int[1];
+				var result = InitializeGL(size.X, size.Y, frameBufferNameArray);
+				if (!result)
+				{
+					return false;
+				}
+				_framebufferName = frameBufferNameArray[0];
+			}
+			BindFramebuffer(_framebufferName);
+			return true;
+		}
+
+		void IGraphicsView.EndDraw()
+		{
+			BindFramebuffer(0);
+		}
 	}
 }
