@@ -136,7 +136,8 @@ namespace Fuse.Platform
 		[Foreign(Language.Java)]
 		static void GetScreenSize(int[] size)
 		@{
-			DisplayMetrics displayMetrics = com.fuse.Activity
+			DisplayMetrics displayMetrics = new DisplayMetrics()
+			com.fuse.Activity
 						 .getRootActivity()
 						 .getWindowManager()
                          .getDefaultDisplay()
@@ -144,8 +145,8 @@ namespace Fuse.Platform
 			int height = displayMetrics.heightPixels;
 			int width = displayMetrics.widthPixels;
 
-			size[0] = width;
-			size[1] = height;
+			size.set(0, width);
+			size.set(1, height);
 		@}
 
 		[Foreign(Language.Java)]
