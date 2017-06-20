@@ -12,7 +12,17 @@ namespace Fuse
 
 	extern (Android && Oculus && !Library) public abstract class VrApp: AppBase
 	{
-		GraphicsView _graphicsView = new RootGraphicsView();
+		public static VrApp Instance
+		{
+			get { return Uno.Application.Current as VrApp; }
+		}
+
+		public static int GetTextureName()
+		{
+			return Instance._graphicsView.GetTextureName();
+		}
+
+		RootGraphicsView _graphicsView = new RootGraphicsView();
 
 		Visual RootVisual
 		{
@@ -21,7 +31,7 @@ namespace Fuse
 
 		protected VrApp()
 		{
-			debug_log("NEW VRAPP");
+			debug_log("NEW VR APP");
 			Fuse.Platform.SystemUI.OnCreate();
 
 			Fuse.Android.StatusBarConfig.SetStatusBarColor(float4(0));

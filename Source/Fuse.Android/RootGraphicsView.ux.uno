@@ -8,7 +8,7 @@ using Uno.Graphics;
 namespace Fuse.Android
 {
 
-	extern(!OCULUS && !OCULUS2)
+	extern(!OCULUS)
 	public class RootGraphicsViewBase : GraphicsView {}
 
 	extern(ANDROID)
@@ -76,7 +76,7 @@ namespace Fuse.Android
 		@}
 	}
 
-	extern(OCULUS && ANDROID)
+	/*extern(OCULUS && ANDROID)
 	public class RootGraphicsViewBase : GraphicsView, IGraphicsView
 	{
 		protected override IGraphicsView InternalGraphicsView { get { return this; } }
@@ -187,17 +187,22 @@ namespace Fuse.Android
 			windowSurface.makeCurrent();
 		@}
 
-	}
+	}*/
 
 	[ForeignInclude(Language.Java, "android.opengl.GLES20", "java.nio.IntBuffer")]
-	extern(OCULUS2 && ANDROID)
+	extern(OCULUS && ANDROID)
 	public class RootGraphicsViewBase : GraphicsView, IGraphicsView
 	{
+
+		public int GetTextureName()
+		{
+			return _textureName;
+		}
 
 		protected override IGraphicsView InternalGraphicsView { get { return this; } }
 
 		[Foreign(Language.Java)]
-		bool InitializeGL(int width, int height, int[] framebufferNameOut)
+		bool InitializeGL(int width, int height, int[] param)
 		@{
 			int[] framebufferNames = new int[1];
 			GLES20.glGenFramebuffers(1, framebufferNames, 0);
@@ -224,7 +229,8 @@ namespace Fuse.Android
 				return false;
 			else
 			{
-				framebufferNameOut.set(0, framebufferName);
+				param.set(0, framebufferName);
+				param.set(1, textureName);
 				return true;
 			}
 		@}
@@ -236,21 +242,26 @@ namespace Fuse.Android
 		@}
 
 		int _framebufferName = 0;
+		int _textureName = 0;
 
 		bool IGraphicsView.BeginDraw(int2 size)
 		{
 			if (size.X == 0 || size.Y == 0)
 				return false;
 
+			debug_log("IGraphicsView.BeginDraw( " + size + " )");
+
 			if (_framebufferName == 0)
 			{
-				var frameBufferNameArray = new int[1];
-				var result = InitializeGL(size.X, size.Y, frameBufferNameArray);
+				var param = new int[2];
+				var result = InitializeGL(size.X, size.Y, param);
 				if (!result)
 				{
+					debug_log("RootGraphicsViewBase: Failed to initialize GL, framebuffer not complete");
 					return false;
 				}
-				_framebufferName = frameBufferNameArray[0];
+				_framebufferName = param[0];
+				_textureName = param[1];
 			}
 			BindFramebuffer(_framebufferName);
 			return true;
@@ -259,6 +270,7 @@ namespace Fuse.Android
 		void IGraphicsView.EndDraw()
 		{
 			BindFramebuffer(0);
+			debug_log("IGraphicsView.EndDraw()");
 		}
 	}
 }
