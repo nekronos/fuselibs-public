@@ -303,6 +303,11 @@ namespace Fuse.Controls
 			}
 		}
 
+		protected virtual IGraphicsView InternalGraphicsView
+		{
+			get { return NativeView as IGraphicsView; }
+		}
+
 		// used on platforms with native graphics views
 		void DrawFrame()
 		{
@@ -311,7 +316,7 @@ namespace Fuse.Controls
 
 			_frameScheduled = false;
 
-			var gv = NativeView as IGraphicsView;
+			var gv = InternalGraphicsView;
 			if (gv != null)
 			{
 				_frustum.LocalFromWorld = WorldTransformInverse;

@@ -10,7 +10,7 @@ namespace Fuse.Controls.Native
 
 	public interface ILeafView : IView {}
 
-	public interface IGraphicsView: IView
+	public interface IGraphicsView
 	{
 		bool BeginDraw(int2 size);
 		void EndDraw();

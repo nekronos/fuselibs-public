@@ -10,48 +10,28 @@ namespace Fuse
 	using Fuse.Controls.Native;
 	using Fuse.Android;
 
-	extern (Android && !Library && !Oculus) public abstract class App: AppBase
+	extern (Android && Oculus && !Library) public abstract class VrApp: AppBase
 	{
-
-		class RootViewHost : INativeViewRoot
-		{
-			void INativeViewRoot.Add(ViewHandle handle) { AppRoot.SetRootView(handle); }
-			void INativeViewRoot.Remove(ViewHandle handle) { AppRoot.ClearRoot(handle); }
-		}
-
-		TreeRendererPanel _renderPanel;
-
-		extern(!DISABLE_IMPLICIT_GRAPHICSVIEW)
 		GraphicsView _graphicsView = new RootGraphicsView();
 
 		Visual RootVisual
 		{
-			get
-			{
-				if defined(!DISABLE_IMPLICIT_GRAPHICSVIEW)
-					return _graphicsView;
-				else
-					return _renderPanel;
-			}
+			get { return _graphicsView; }
 		}
 
-		public App()
+		protected VrApp()
 		{
+			debug_log("NEW VRAPP");
 			Fuse.Platform.SystemUI.OnCreate();
 
 			Fuse.Android.StatusBarConfig.SetStatusBarColor(float4(0));
 
 			Fuse.Controls.TextControl.TextRendererFactory = Fuse.Android.TextRenderer.Create;
 
-			_renderPanel = new TreeRendererPanel(new RootViewHost());
-
-			if defined(!DISABLE_IMPLICIT_GRAPHICSVIEW)
-				_renderPanel.Children.Add(_graphicsView);
-
 			MobileBootstrapping.Init();
 
 			RootViewport = new NativeRootViewport(AppRoot.ViewHandle);
-			RootViewport.Children.Add(_renderPanel);
+			RootViewport.Children.Add(_graphicsView);
 
 			Uno.Platform.Displays.MainDisplay.Tick += OnTick;
 		}
@@ -92,10 +72,9 @@ namespace Fuse
 
 		void PropagateBackground()
 		{
-			if defined(!DISABLE_IMPLICIT_GRAPHICSVIEW)
-				_graphicsView.Color = Background;
-			else
-				AppRoot.ViewHandle.SetBackgroundColor((int)Uno.Color.ToArgb(Background));
+			_graphicsView.Color = Background;
 		}
 	}
+
+	extern (Android && Oculus && !Library) public abstract class App: VrApp {}
 }
