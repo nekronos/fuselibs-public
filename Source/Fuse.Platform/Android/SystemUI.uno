@@ -45,7 +45,12 @@ namespace Fuse.Platform
 		static private Rect _frame;
 		static public Rect Frame
 		{
-			get { return _frame; }
+			get
+			{
+				int[] size = new int[2];
+				GetScreenSize(size);
+				return new Rect(0, 0, size[1], size[0]);
+			}
 			private set
 			{
 				if (Rect.Equals(_frame, value))
@@ -119,12 +124,28 @@ namespace Fuse.Platform
 			#endif
 
 			// layouts
-			if (@{SuperLayout}==null) @{CreateLayouts():Call()};
+			if (@{SuperLayout}==null)
+				@{CreateLayouts():Call()};
 			activity.getWindow().setContentView(((FrameLayout)@{SuperLayout}));
 			ViewTreeObserver.OnGlobalLayoutListener kl = new ViewTreeObserver.OnGlobalLayoutListener() { public void onGlobalLayout() { @{unoOnGlobalLayout():Call()}; }};
 			@{_keyboardListener:Set(kl)};
 			@{Attach(Java.Object):Call(@{RootLayout})};
 			@{HookOntoRawActivityEvents():Call()};
+		@}
+
+		[Foreign(Language.Java)]
+		static void GetScreenSize(int[] size)
+		@{
+			DisplayMetrics displayMetrics = com.fuse.Activity
+						 .getRootActivity()
+						 .getWindowManager()
+                         .getDefaultDisplay()
+                         .getMetrics(displayMetrics);
+			int height = displayMetrics.heightPixels;
+			int width = displayMetrics.widthPixels;
+
+			size[0] = width;
+			size[1] = height;
 		@}
 
 		[Foreign(Language.Java)]

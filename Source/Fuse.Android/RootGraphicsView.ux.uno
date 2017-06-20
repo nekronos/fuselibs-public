@@ -76,7 +76,7 @@ namespace Fuse.Android
 		@}
 	}
 
-	/*extern(OCULUS && ANDROID)
+	extern(OCULUS && ANDROID)
 	public class RootGraphicsViewBase : GraphicsView, IGraphicsView
 	{
 		protected override IGraphicsView InternalGraphicsView { get { return this; } }
@@ -85,21 +85,49 @@ namespace Fuse.Android
 
 		public RootGraphicsViewBase()
 		{
-			var texture = GL.CreateTexture();
+			/*var texture = GL.CreateTexture();
 			var surfaceTexture = NewSurfaceTexture((int)texture, OnFrameAvailable);
-			_renderer = new Renderer(surfaceTexture);
-			UpdateManager.AddAction(OnUpdate);
+
+			UpdateManager.AddAction(OnUpdate);*/
 		}
 
 		CaptureContext _capture;
 
-		bool IGraphicsView.BeginDraw(int2 size)
+		void Initialize()
 		{
-			_capture = new CaptureContext();
-			_renderer.MakeCurrent();
-			return true;
+			var surfaceTexture = Uno.VrEntryPoint.GetSurfaceTexture();
+			if (surfaceTexture == null)
+				return;
+
+			_renderer = new Renderer(surfaceTexture);
 		}
 
+		bool IGraphicsView.BeginDraw(int2 size)
+		{
+			if (size.X == 0 || size.Y == 0)
+			{
+				debug_log("------------------------------------ GOT BAD SIZE ");
+				return false;
+			}
+
+			if (_renderer == null)
+				Initialize();
+
+			if (_renderer != null)
+			{
+				debug_log("------------------------------------ IGraphicsView.BeginDraw( " + size + " )");
+				_capture = new CaptureContext();
+				_renderer.MakeCurrent();
+				return true;
+			}
+			else
+			{
+				debug_log("------------------------------------ IGraphicsView.BeginDraw( NO RENDERER - InvalidateVisual() )");
+				InvalidateVisual();
+				return false;
+			}
+		}
+		/*
 		bool _frameAvaiable = false;
 		Java.Object _surfaceTexture;
 		void OnFrameAvailable(Java.Object surfaceTexture)
@@ -124,6 +152,7 @@ namespace Fuse.Android
 			android.graphics.SurfaceTexture surfaceTexture = (android.graphics.SurfaceTexture)handle;
 			surfaceTexture.updateTexImage();
 		@}
+		*/
 
 		[Foreign(Language.Java)]
 		Java.Object NewSurfaceTexture(int textureName, Action<Java.Object> onFrameAvailableCallback)
@@ -139,9 +168,14 @@ namespace Fuse.Android
 
 		void IGraphicsView.EndDraw()
 		{
-			_renderer.SwapBuffers();
-			_capture.Restore();
-			_capture = null;
+			if (_renderer != null)
+			{
+				if (!_renderer.SwapBuffers())
+					debug_log("IGraphicsView.EndDraw(): _renderer.SwapBuffers() failed!");
+				_capture.Restore();
+				_capture = null;
+				debug_log("------------------------------------ IGraphicsView.EndDraw()");
+			}
 		}
 	}
 
@@ -187,9 +221,9 @@ namespace Fuse.Android
 			windowSurface.makeCurrent();
 		@}
 
-	}*/
+	}
 
-	[ForeignInclude(Language.Java, "android.opengl.GLES20", "java.nio.IntBuffer")]
+	/*[ForeignInclude(Language.Java, "android.opengl.GLES20", "java.nio.IntBuffer")]
 	extern(OCULUS && ANDROID)
 	public class RootGraphicsViewBase : GraphicsView, IGraphicsView
 	{
@@ -270,5 +304,5 @@ namespace Fuse.Android
 			BindFramebuffer(0);
 			debug_log("IGraphicsView.EndDraw()");
 		}
-	}
+	}*/
 }
