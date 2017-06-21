@@ -80,54 +80,77 @@ namespace Fuse
 			}
 		}
 
+		abstract class InputEvent
+		{
+			protected readonly double _timeStamp;
+			protected readonly float2 _coord;
+
+			public InputEvent(double timeStamp, float2 coord)
+			{
+				_timeStamp = timeStamp;
+				_coord = coord;
+			}
+
+			public void Dispatch()
+			{
+				RaiseEvent(new PointerEventData()
+				{
+					PointIndex = 0,
+					WindowPoint = _coord / VrApp.Instance.RootVisual.Viewport.PixelsPerPoint,
+					Timestamp = _timeStamp,
+					PointerType = Uno.Platform.PointerType.Touch,
+					IsPrimary = true,
+				});
+			}
+
+			protected abstract void RaiseEvent(PointerEventData pointerEventData);
+		}
+
+		class DownEvent : InputEvent
+		{
+			public DownEvent(double timeStamp, float2 coord) : base(timeStamp, coord) {}
+			protected override void RaiseEvent(PointerEventData pointerEventData) { Fuse.Input.Pointer.RaisePressed(VrApp.Instance.RootVisual, pointerEventData); }
+		}
+
+		class MovedEvent : InputEvent
+		{
+			public MovedEvent(double timeStamp, float2 coord) : base(timeStamp, coord) {}
+			protected override void RaiseEvent(PointerEventData pointerEventData) { Fuse.Input.Pointer.RaiseMoved(VrApp.Instance.RootVisual, pointerEventData); }
+		}
+
+		class UpEvent : InputEvent
+		{
+			public UpEvent(double timeStamp, float2 coord) : base(timeStamp, coord) {}
+			protected override void RaiseEvent(PointerEventData pointerEventData) { Fuse.Input.Pointer.RaiseReleased(VrApp.Instance.RootVisual, pointerEventData); }
+		}
+
 		void OnClick(float x, float y)
 		{
-			var pressedEvent = new PointerEventData()
+			/*var pressedEvent = new PointerEventData()
 			{
 				PointIndex = 0,
-				WindowPoint = float2(x, y),
+				WindowPoint = float2(x, y) / RootVisual.Viewport.PixelsPerPoint,
 				Timestamp = Uno.Diagnostics.Clock.GetSeconds(),
 				PointerType = Uno.Platform.PointerType.Touch,
 				IsPrimary = true,
 			};
 			Fuse.Input.Pointer.RaisePressed(RootVisual, pressedEvent);
-			new DeferReleased(float2(x, y));
+			new DeferReleased(float2(x, y) / RootVisual.Viewport.PixelsPerPoint);*/
 		}
 
 		void OnPointerDown(float x, float y)
 		{
-			Fuse.Input.Pointer.RaisePressed(RootVisual, new PointerEventData()
-			{
-				PointIndex = 0,
-				WindowPoint = float2(x, y),
-				Timestamp = Uno.Diagnostics.Clock.GetSeconds(),
-				PointerType = Uno.Platform.PointerType.Touch,
-				IsPrimary = true,
-			});
+			UpdateManager.PostAction(new DownEvent(Uno.Diagnostics.Clock.GetSeconds(), float2(x, y)).Dispatch);
 		}
 
 		void OnPointerUp(float x, float y)
 		{
-			Fuse.Input.Pointer.RaiseReleased(RootVisual, new PointerEventData()
-			{
-				PointIndex = 0,
-				WindowPoint = float2(x, y),
-				Timestamp = Uno.Diagnostics.Clock.GetSeconds(),
-				PointerType = Uno.Platform.PointerType.Touch,
-				IsPrimary = true,
-			});
+			UpdateManager.PostAction(new UpEvent(Uno.Diagnostics.Clock.GetSeconds(), float2(x, y)).Dispatch);
 		}
 
 		void OnPointerMove(float x, float y)
 		{
-			Fuse.Input.Pointer.RaiseMoved(RootVisual, new PointerEventData()
-			{
-				PointIndex = 0,
-				WindowPoint = float2(x, y),
-				Timestamp = Uno.Diagnostics.Clock.GetSeconds(),
-				PointerType = Uno.Platform.PointerType.Touch,
-				IsPrimary = true,
-			});
+			UpdateManager.PostAction(new MovedEvent(Uno.Diagnostics.Clock.GetSeconds(), float2(x, y)).Dispatch);
 		}
 
 		void OnTick(object sender, Uno.Platform.TimerEventArgs args)
