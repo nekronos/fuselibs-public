@@ -49,7 +49,7 @@ namespace Fuse.Platform
 			{
 				int[] size = new int[2];
 				GetScreenSize(size);
-				return new Rect(0, 0, size[1], size[0]);
+				return new Rect(0, 0, size[0], size[1]);
 			}
 			private set
 			{
@@ -136,7 +136,7 @@ namespace Fuse.Platform
 		[Foreign(Language.Java)]
 		static void GetScreenSize(int[] size)
 		@{
-			DisplayMetrics displayMetrics = new DisplayMetrics()
+			DisplayMetrics displayMetrics = new DisplayMetrics();
 			com.fuse.Activity
 						 .getRootActivity()
 						 .getWindowManager()
