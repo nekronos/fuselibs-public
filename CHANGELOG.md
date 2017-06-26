@@ -110,6 +110,8 @@ which will stop push notifications registering (and potentially asking for permi
 
 ### Fuse.Camera
 - iOS: Fixed crash when using Fuse.Camera alongside `<iOS.StatusBarConfig IsVisible="false" />`
+### Fuse.ImageTools
+- Fixed bug preventing handling of KEEP_ASPECT resize mode on Android when using ImageTools.resize 
 
 ## 1.1.0
 
