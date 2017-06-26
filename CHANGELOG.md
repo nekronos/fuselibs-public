@@ -108,6 +108,8 @@ which will stop push notifications registering (and potentially asking for permi
 ### FuseJS
 - Fixed a bug where disposing a JavaScript tag that has called the findData-method could lead to a crash.
 
+### Fuse.Camera
+- iOS: Fixed crash when using Fuse.Camera alongside `<iOS.StatusBarConfig IsVisible="false" />`
 
 ## 1.1.0
 
