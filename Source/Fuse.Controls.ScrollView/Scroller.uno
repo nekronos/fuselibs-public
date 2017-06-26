@@ -208,6 +208,7 @@ namespace Fuse.Gestures
 				UpdateManager.AddAction(_scrollable.InvalidateVisual);
 			_pressed = true;
 		}
+		
 		void StopInvalidateVisual()
 		{
 			if (_pressed)
