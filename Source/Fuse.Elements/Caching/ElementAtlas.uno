@@ -145,18 +145,10 @@ namespace Fuse.Elements
 			if (_invalidElements > 0)
 			{
 				Rect scissorRectInClipSpace = GetScissorRectInClipSpace(dc);
-				dc.PushRenderTarget(fb);
-
 				bool drawAll = _invalidElements == _elements.Count;
-				if (drawAll)
-				{
-					dc.Clear(float4(0), 1);
-					FillFramebuffer(dc, true, scissorRectInClipSpace);
-				} else
-					FillFramebuffer(dc, false, scissorRectInClipSpace);
-
-				dc.PopRenderTarget();
+				FillFramebuffer(dc, fb, drawAll, scissorRectInClipSpace);
 			}
+
 			return fb;
 		}
 
@@ -165,8 +157,12 @@ namespace Fuse.Elements
 			_framebuffer.Unpin();
 		}
 
-		void FillFramebuffer(DrawContext dc, bool drawAll, Rect scissorRectInClipSpace)
+		void FillFramebuffer(DrawContext dc, framebuffer fb, bool drawAll, Rect scissorRectInClipSpace)
 		{
+			// Changing the framebuffer is expensive. This loop actually doesn't draw anything in
+			// common case. Don't push the render target unless we actually have to render something.
+			var framebufferPushed = false;
+
 			var density = dc.ViewportPixelsPerPoint;
 			var viewport = (float2)_rectPacker.Size / density;
 			foreach (var elm in _elements)
@@ -185,6 +181,13 @@ namespace Fuse.Elements
 					var cc = new OrthographicFrustum{
 						Origin = float2(0, 0), Size = viewport,
 						LocalFromWorld = Matrix.Mul(elm.WorldTransformInverse, translation) };
+
+					if (!framebufferPushed)
+					{
+						dc.PushRenderTarget(fb);
+						if (drawAll) dc.Clear(float4(0), 1);
+						framebufferPushed = true;
+					}
 
 					dc.PushViewport( new FixedViewport(_rectPacker.Size, density, cc));
 
@@ -207,6 +210,9 @@ namespace Fuse.Elements
 					entry.IsValid = true;
 				}
 			}
+
+			if (framebufferPushed)
+				dc.PopRenderTarget();
 		}
 	}
 }
