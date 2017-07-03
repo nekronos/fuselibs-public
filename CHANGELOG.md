@@ -73,6 +73,7 @@ which will stop push notifications registering (and potentially asking for permi
 - Fixed a bug which prevented elements like `Image` to use fast-track rendering in trivial cases with opacity (avoids render to texture).
 ## OpenGL Optimizations
 - To improve rendering speed, Fuse no longer checks for OpenGL errors in release builds in some performance-critical code paths  
+## Optimizations
 - Optimized hit testing calculations. Improves scrolling in large scroll views with deep trees inside, among other things.
 
 ## Attract
