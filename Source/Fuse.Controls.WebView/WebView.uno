@@ -80,7 +80,7 @@ namespace Fuse.Controls
 
 	/**
 		Displays web content natively on android and iOS.
-		
+
 		As the WebView is native only, it needs to be contained in a @NativeViewHost.
 
 		The WebView can be used to present web content either over the http protocol or by loading HTML as a string, and hooks into some useful triggers for building a customized browsing experience, such as @PageBeginLoading, @WhilePageLoading and @PageLoaded.
@@ -124,17 +124,27 @@ namespace Fuse.Controls
 	public partial class WebView : Panel, IWebView
 	{
 
+
+		static string PreprocUriScheme(string inScheme)
+		{
+			return inScheme.Contains("://") ? inScheme : (inScheme + "://");
+		}
+
 		protected override Fuse.Controls.Native.IView CreateNativeView()
 		{
-			string scheme = @(Project.Mobile.UriScheme);
-			string[] schemes = scheme!="" ? new string[]{scheme} :  new string[]{};
-			
-			if defined(Android)
-				return Fuse.Android.Controls.WebView.Create(this, schemes);
+			if defined(Android || iOS)
+			{
+				string scheme = @(Project.Mobile.UriScheme);
+				scheme = PreprocUriScheme(scheme);
+				string[] schemes = scheme!="" ? new string[]{scheme} :  new string[]{};
 
-			else if defined(iOS)
-				return Fuse.iOS.Controls.WebView.Create(this, schemes);
-
+				if defined(Android)
+					return Fuse.Android.Controls.WebView.Create(this, schemes);
+				else if defined(iOS)
+					return Fuse.iOS.Controls.WebView.Create(this, schemes);
+				else
+					build_error;
+			}
 			else return base.CreateNativeView();
 		}
 
@@ -256,20 +266,20 @@ namespace Fuse.Controls
 				}
 			}
 		}
-		
+
 		/**
 			Determines if pinch-to-zoom gestures are available in the WebView.
 			Defaults to 'true'
 		*/
-		public bool ZoomEnabled { 
-			set { 
+		public bool ZoomEnabled {
+			set {
 				if(WebViewClient != _fallbackClient){
 					debug_log("ZoomEnabled cannot be changed once rooted");
 					return;
-				} 
-				WebViewClient.ZoomEnabled = value; 
-			} 
-			get { return WebViewClient.ZoomEnabled; } 
+				}
+				WebViewClient.ZoomEnabled = value;
+			}
+			get { return WebViewClient.ZoomEnabled; }
 		}
 
 		void applyFallbackCalls(IWebView client)
@@ -316,7 +326,7 @@ namespace Fuse.Controls
 		{
 			WebViewClient.LoadHtml(html ?? "");
 		}
-		
+
 		/**
 			When loading HTML from source; The base URL serving as scope for the HTML.
 		*/
@@ -325,7 +335,7 @@ namespace Fuse.Controls
 			get { return WebViewClient.BaseUrl; }
 			set { WebViewClient.BaseUrl = value ?? ""; }
 		}
-		
+
 		/**
 			The HTML source code to display.
 		*/
@@ -359,7 +369,7 @@ namespace Fuse.Controls
 			get { return WebViewClient.Url; }
 			set { SetUrl(value ?? "about:blank", this); }
 		}
-		
+
 		/**
 			The File from which to load HTML
 		*/
