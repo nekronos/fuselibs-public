@@ -46,6 +46,11 @@
 Fixed issue where custom URI schemes were matched too greedily in URLs, making for erroneously intercepted URL requests.
 
 ### Delay Push Notification Registration on iOS
+# 1.2
+## TextView
+- Fixed iOS issue where the return key would display "next" instead of "return".
+
+## Delay Push Notification Registration on iOS
 
 On iOS you can now put the following in your unoproj file:
 
@@ -57,6 +62,42 @@ On iOS you can now put the following in your unoproj file:
     },
 ```
 which will stop push notifications registering (and potentially asking for permissions) on launch. Your must then call `register()` from JS when you wish to begin using push notifications. On android this option & register are silently ignored.
+
+## Image
+- Fixed issue where an `<Image />` could fail to display inside a `<NativeViewHost />` on iOS
+
+## Each
+- Fixed a bug where replacing the whole list of items with an empty list would not immediately remove the items from the UI.
+
+## Router
+- Added several features to allow navigation/routing from within UX, whereas previously JavaScript code was required.
+- Added `ModifyRoute`, `GotoRoute` and `PushRoute` actions to replace `RouterModify`. These all have a `Path` property.
+	<Each Items="{tags}">
+		<Text Value="{tag}">
+			<Clicked>
+				<PushRoute Path=" 'list', 'tag' : ('id': {tag})"/>
+			</Clicked>
+		</Text>
+	</Each>
+- Added `gotoRoute`, `pushRoute`, and `modifyRoute` expression events which allow for simple navigation in event handlers.
+	<Button Text="View Details" Clicked="gotoRoute( 'home', 'user' : ( 'id': {userId}) )"/>
+
+## ScrollViewPager
+- Added `ScrollViewPage` which simplifies the creation of infinite scrolling lists
+
+## Navigator / PageControl
+- Added `Pages` property that allows for a state driven app navigation
+
+## Ellipse
+- Added missing hit testing from `Ellipse`. If you relied on there not being any hit testing on an ellipse add `HitTestMode="None"`
+
+## Video
+- Xamarin Mac was upgraded to support 64-bit executables on macOS.
+
+## Trigger
+- Fixed an issue where certain triggers would not skip their animation/actions as part of the Bypass phase. This will not likely affect many projects, but may resolve some spurious issues where animations did not bypass under certain conditions.
+- Fixed an issue where `WhileVisibleInScrollView` did not respect the Bypass phase for element layout.
+  * If you required this behaviour add `Bypass="None"` to the trigger -- in exceptional cases you can add `Bypass="ExceptLayout"` to get the precise previous behaviour, but it should not be required, and is only temporarily available for backwards compatibility.
 
 ### Image
 - Fixed issue where an `<Image />` could fail to display inside a `<NativeViewHost />` on iOS
