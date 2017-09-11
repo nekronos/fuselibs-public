@@ -52,6 +52,11 @@ namespace Fuse.Controls
 
 			void NextFrame()
 			{
+				UpdateManager.PerformNextFrame(NextNextFrame);
+			}
+
+			void NextNextFrame()
+			{
 				if (_canceled)
 					return;
 				_host._draw = false;
