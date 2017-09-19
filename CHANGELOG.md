@@ -114,7 +114,8 @@ Fixed issue where custom URI schemes were matched too greedily in URLs, making f
 - Removed `Navigation.PageData`. It was always meant to be internal and has no public use.
 
 ## ScriptClass
-- Added ScriptPromise. This addes support for passing Promises between Uno and the scripting engine. Very useful when dealing with async stuff and JavaScript
+- Added ScriptPromise. This adds support for passing Promises between Uno and the scripting engine. Very useful when dealing with async stuff and JavaScript
+- Added ScriptReadonlyProperty. This feature lets you expose readonly data in JavaScript. Useful for exposing constants for example
 
 ## WebView
 Fixed issue where custom URI schemes were matched too greedily in URLs, making for erroneously intercepted URL requests.
