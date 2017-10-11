@@ -5,15 +5,29 @@ using Fuse.Drawing;
 using Fuse.Internal;
 using Fuse.Elements;
 
+using Fuse.Nodes;
+using Fuse.Resources;
+using Fuse.Resources.Exif;
+
 namespace Fuse.Controls
 {
 	public partial class Image
 	{
+
 		float2 GetSize()
 		{
-			if (Source != null)
-				return Container.Sizing.CalcContentSize( Source.Size, Source.PixelSize );
-			return float2(0);
+			if (Source == null)
+				return float2(0);
+
+			var size = Source.Size;
+			var pixelSize = Source.PixelSize;
+			if (Source.Orientation.HasFlag(ImageOrientation.Rotate90)
+				|| Source.Orientation.HasFlag(ImageOrientation.Rotate270))
+			{
+				size = float2(Source.Size.Y, Source.Size.X);
+				pixelSize = int2(Source.PixelSize.Y, Source.PixelSize.X);
+			}
+			return Container.Sizing.CalcContentSize( size, pixelSize );
 		}
 
 		protected override float2 GetContentSize( LayoutParams lp )
@@ -32,9 +46,9 @@ namespace Fuse.Controls
 		protected override void ArrangePaddingBox( LayoutParams lp)
 		{
 			base.ArrangePaddingBox(lp);
-				
+
 			var size = lp.Size;
-			
+
 			Container.Sizing.snapToPixels = SnapToPixels;
 			Container.Sizing.absoluteZoom = AbsoluteZoom;
 
@@ -46,7 +60,7 @@ namespace Fuse.Controls
 			_drawSize = contentDesiredSize * _scale;
 			_uvClip = Container.Sizing.CalcClip( size, ref _drawOrigin, ref _drawSize );
 			InvalidateRenderBounds();
-			
+
 			SetContentBox(float4(_drawOrigin,_drawOrigin+_drawSize));
 			UpdateNativeImageTransform();
 		}
@@ -64,16 +78,36 @@ namespace Fuse.Controls
 		{
 			if (!base.FastTrackDrawWithOpacity(dc))
 				return false;
-			
+
 			DrawVisualColor(dc, float4(Color.XYZ, Color.W * Opacity));
 			return true;
 		}
-		
+
 		protected override void DrawVisual(DrawContext dc)
 		{
 			DrawVisualColor(dc, Color);
 		}
-		
+
+		float4x4 TransformFromImageOrientation(ImageOrientation orientation)
+		{
+			var flip = Matrix.Scaling(1,1,1);
+			var rotation = Matrix.RotationZ(0.0f);
+
+			if (Source.Orientation.HasFlag(ImageOrientation.FlipVertical))
+				flip = Matrix.Scaling(1,-1,1);
+
+			if ((Source.Orientation & (int)0x03) == ImageOrientation.Rotate270)
+				rotation = Matrix.RotationZ(Math.PIf / 2.0f);
+			else if ((Source.Orientation & (int)0x03) == ImageOrientation.Rotate90)
+				rotation = Matrix.RotationZ(-Math.PIf / 2.0f);
+			else if ((Source.Orientation & (int)0x03) == ImageOrientation.Rotate180)
+				rotation = Matrix.RotationZ(Math.PIf);
+
+			var translateToCenter = Matrix.Translation(0.5f,0.5f,0.0f);
+			var translateBack = Matrix.Translation(-0.5f,-0.5f,0.0f);
+			return Matrix.Mul(translateBack, flip, rotation, translateToCenter);
+		}
+
 		void DrawVisualColor(DrawContext dc, float4 color)
 		{
 			var tex = Container.GetTexture();
@@ -82,16 +116,18 @@ namespace Fuse.Controls
 
 			if (Container.StretchMode == StretchMode.Scale9)
 			{
-				Fuse.Elements.Internal.Scale9Rectangle.Impl.Draw(dc, this, ActualSize, GetSize(), tex, color, 
-					Scale9Margin);
+				Fuse.Elements.Internal.Scale9Rectangle.Impl.Draw(dc, this, ActualSize, GetSize(), tex, color, Scale9Margin);
 			}
 			else
 			{
+				var imageTransform = TransformFromImageOrientation(Source.Orientation);
+
 				ImageElementDraw.Impl.
 					Draw(dc, this, _drawOrigin, _drawSize,
-					     _uvClip.XY, _uvClip.ZW - _uvClip.XY,
-					      tex, Container.ResampleMode,
-					      color);
+						_uvClip.XY, _uvClip.ZW - _uvClip.XY,
+						 imageTransform,
+						tex, Container.ResampleMode,
+						color);
 			}
 		}
 
@@ -104,7 +140,7 @@ namespace Fuse.Controls
 				htc.Hit(this);
 			base.OnHitTestLocalVisual(htc);
 		}
-		
+
 		protected override VisualBounds HitTestLocalVisualBounds
 		{
 			get
@@ -114,7 +150,7 @@ namespace Fuse.Controls
 				return b;
 			}
 		}
-		
+
 		protected override VisualBounds CalcRenderBounds()
 		{
 			var b = base.CalcRenderBounds();
@@ -138,14 +174,17 @@ namespace Fuse.Controls
 			}
 		}
 
+
 		public void Draw(DrawContext dc, Visual element, float2 offset,
-		                 float2 size, float2 uvPosition, float2 uvSize,
-	                     Texture2D tex, ResampleMode resampleMode,
-		                 float4 Color )
+			float2 size, float2 uvPosition, float2 uvSize,
+			float4x4 imageTransform,
+			Texture2D tex, ResampleMode resampleMode,
+			float4 Color )
 		{
 			draw
 			{
 				apply Fuse.Drawing.Planar.Image;
+
 				DrawContext: dc;
 				Visual: element;
 				Size: size;
@@ -153,6 +192,7 @@ namespace Fuse.Controls
 				Texture: tex;
 				SamplerState SamplerState: GetSamplerState(resampleMode);
 				TexCoord: VertexData * uvSize + uvPosition;
+				TexCoord: Vector.TransformCoordinate(prev, imageTransform);
 				TextureColor: prev * Color;
 			};
 		}
