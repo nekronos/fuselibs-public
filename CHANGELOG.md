@@ -7,6 +7,53 @@
 - Fixed bug where the default font on Android could end up being null.
 
 ## ViewHandle
+- Fixed bug on Android where setting `TextWrapping="NoWrap"` would force the `TextView` to be single line. New behavior is to instead allow the view to scroll horizontally instead of automatically wrapping the text.
+
+## MultiDensityImageSource
+- Added native support, meaning it can be used by images inside a `NativeViewHost`.
+
+## Video
+- Fixed bug in Video where playback actions, like `Play`, used before the video was initialized would end up getting swallowed.
+- Added some JavaScript methods to `Video` to make it easier to control playback from JavaScript, as well as obtaining information the video duration.
+- Made `Video.Duration` and `Video.Position` property-bindable.
+
+## Fuse.Marshal:
+- Fixed a bug where UX expressions that produce two component floats did not expand to four compoent floats the same same way as literals did.
+
+## Fuse.Reactive framework changes (Uno-level)
+- These are breaking changes, but very unlikely to affect your app:
+ * The `DataBinding`, `EventBinding` and `ExpressionBinding` class constructors no longer take a `NameTable` argument.
+ * The `Name` and `This` expression classes has been removed. The UX compiler will now compile these as `Constant` expressions that contain the actual objects instead.
+ * The `IContext` interface no longer contains the `NameTable` property.
+ * The `Fuse.IRaw` interface removed (now internal to the `Fuse.Reactive.JavaScript` package). Had no practical public use.
+ * The `Fuse.Reactive.ListMirror` class is no longer public. This was never intended to be public and has no practical public application.
+ * Added detailed docs for many of the interfaces in the `Fuse.Reactive` namespace.
+ * The `Fuse.Reactive.IWriteable` interface has changed (breaking!). The method signature is now `bool TrySetExclusive(object)` instead of `void SetExclusive(object)`. Unlikely to affect your code.
+ * `IObservable` and `IObservableArray` no longer push their initial value on `Subscribe`.
+
+## Image
+- Image will now respect Exif orientation.
+
+# 1.3
+
+## 1.3.0
+
+### Native UI:
+- Fixed bug on iOS that could cause native views from thirdparty libraries to get an incorrect position. (Fixes issues with Firebase AdMob)
+
+### JavaScript: Optional explicit require() of UX symbols
+- Symbols declared with `ux:Name`, `ux:Dependency` or `dep` are now also available to `require()` for `<JavaScript>` modules using the `ux:` prefix. This allows us to write code that plays nicer with transpilers and linters. Using require for names declared in UX is optional, but may make the code more readable and maintainable, e.g. `var router = require("ux:router")` over just using `router` with no declaration.
+
+### Fuse.Drawing.Surface
+- Fixed a problem where horizontal or vertical lines would not draw in the .NET backend.
+
+### Attract
+- Fixed an issue with `attract` not updating when using a data binding as the source value
+
+### Fonts
+- Fixed bug where the default font on Android could end up being null.
+
+### ViewHandle
 - Fixed issue where Images with Mask could end up not displaying. This happend due to unnecessary invalidation of the implicit native GraphicsView in the app root. This invalidation was introduced when the Surface API was implemented for native. Invalidation is now opt-in on ViewHandle
 
 ## Rectangle
