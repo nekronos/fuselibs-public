@@ -66,7 +66,8 @@ namespace Fuse.Controls
 		IViewHandleRenderer InstatiateRenderer()
 		{
 			if defined(Android)
-				return TextEditRenderer.NewRenderer(this, _isMultiline);
+				//return TextEditRenderer.NewRenderer(this, _isMultiline);
+				return new AndroidNativeGLRenderer();
 			else if defined(iOS)
 				return new NativeViewRenderer();
 		}

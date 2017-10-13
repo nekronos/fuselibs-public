@@ -6,6 +6,177 @@ using OpenGL;
 
 namespace Fuse.Controls.Native
 {
+	extern(Android)
+	public class AndroidNativeGLRenderer : IViewHandleRenderer
+	{
+
+		GLTextureHandle _textureHandle;
+		Java.Object _surfaceTexture;
+		Java.Object _surface;
+
+		int2 _prevSize = int2(-1);
+
+		public void Draw(
+			ViewHandle viewHandle,
+			float4x4 localToClipTransform,
+			float2 position,
+			float2 size,
+			float density)
+		{
+
+			GL.BindTexture(GLTextureTarget.Texture2D, _textureHandle);
+
+			var pixelSize = (int2)(size * density);
+			var reuse = true;
+
+			if (_prevSize != pixelSize)
+			{
+				ReleaseResources();
+				_textureHandle = GL.CreateTexture();
+				_surfaceTexture = NewSurfaceTexture((int)_textureHandle, pixelSize.X, pixelSize.Y);
+				InstallOnFrameAvailableListener(_surfaceTexture, OnFrameAvailable);
+				_surface = NewSurface(_surfaceTexture);
+				_prevSize = pixelSize;
+				reuse = false;
+			}
+
+			if (_canUpdateTexImage)
+			{
+				debug_log(this + " ---- UpdateTexImage ---- ");
+				UpdateTexImage(_surfaceTexture);
+				_canUpdateTexImage = false;
+			}
+
+			Draw(viewHandle.NativeHandle, _surface, pixelSize.X, pixelSize.Y);
+
+			debug_log(this + " ---- DRAW ---- ");
+			Blitter.Singleton.Blit(
+				new texture2D(_textureHandle, pixelSize, 1, Format.RGBA8888),
+				position,
+				size,
+				localToClipTransform);
+		}
+
+		bool _canUpdateTexImage = false;
+
+		void OnFrameAvailable()
+		{
+			debug_log(this + " ---- OnFrameAvailable ---- ");
+			_canUpdateTexImage = true;
+		}
+
+		void UpdateTexImageCallback()
+		{
+
+
+		}
+
+		public void Invalidate()
+		{
+
+		}
+
+		public void Dispose()
+		{
+			ReleaseResources();
+		}
+
+		void ReleaseResources()
+		{
+			if (_surface != null)
+			{
+				ReleaseSurface(_surface);
+				_surface = null;
+			}
+
+			if (_surfaceTexture != null)
+			{
+				ReleaseSurfaceTexture(_surfaceTexture);
+				_surfaceTexture = null;
+			}
+
+			if (_textureHandle != GLTextureHandle.Zero)
+			{
+				GL.DeleteTexture(_textureHandle);
+				_textureHandle = GLTextureHandle.Zero;
+			}
+		}
+
+		[Foreign(Language.Java)]
+		static void Draw(Java.Object viewHandle, Java.Object surfaceHandle, int w, int h)
+		@{
+			android.view.View view = (android.view.View)viewHandle;
+			android.view.Surface surface = (android.view.Surface)surfaceHandle;
+
+			boolean measureAndLayout = !(view.getWidth() == w || view.getHeight() == h);
+			if (measureAndLayout)
+			{
+				view.measure(
+				android.view.View.MeasureSpec.makeMeasureSpec(w, android.view.View.MeasureSpec.EXACTLY),
+				android.view.View.MeasureSpec.makeMeasureSpec(h, android.view.View.MeasureSpec.EXACTLY));
+
+				view.layout(0, 0, w, h);
+			}
+
+			android.graphics.Canvas canvas = surface.lockHardwareCanvas();
+
+			int scrollX = view.getScrollX();
+			int scrollY = view.getScrollY();
+			canvas.translate(-(float)scrollX, -(float)scrollY);
+
+			view.draw(canvas);
+
+			surface.unlockCanvasAndPost(canvas);
+		@}
+
+		[Foreign(Language.Java)]
+		static void UpdateTexImage(Java.Object surfaceTexture)
+		@{
+			try {
+				((android.graphics.SurfaceTexture)surfaceTexture).updateTexImage();
+			} catch(Exception e) {
+				android.util.Log.d("XXXXXXXXXXXXX", e.getMessage());
+			}
+		@}
+
+		[Foreign(Language.Java)]
+		static Java.Object NewSurfaceTexture(int textureName, int width, int height)
+		@{
+			android.graphics.SurfaceTexture surfaceTexture = new android.graphics.SurfaceTexture(textureName);
+			surfaceTexture.setDefaultBufferSize(width, height);
+			return surfaceTexture;
+		@}
+
+		[Foreign(Language.Java)]
+		static Java.Object NewSurface(Java.Object surfaceTexture)
+		@{
+			return new android.view.Surface((android.graphics.SurfaceTexture)surfaceTexture);
+		@}
+
+		[Foreign(Language.Java)]
+		static void ReleaseSurfaceTexture(Java.Object surfaceTexture)
+		@{
+			((android.graphics.SurfaceTexture)surfaceTexture).release();
+		@}
+
+		[Foreign(Language.Java)]
+		static void ReleaseSurface(Java.Object surface)
+		@{
+			((android.view.Surface)surface).release();
+		@}
+
+		[Foreign(Language.Java)]
+		static void InstallOnFrameAvailableListener(Java.Object surfaceTexture, Action callback)
+		@{
+			((android.graphics.SurfaceTexture)surfaceTexture).setOnFrameAvailableListener(
+				new android.graphics.SurfaceTexture.OnFrameAvailableListener() {
+					public void onFrameAvailable(android.graphics.SurfaceTexture surfaceTexture) {
+						callback.run();
+					}
+				});
+		@}
+	}
+
 	extern(Android || iOS)
 	internal interface IViewHandleRenderer : IDisposable
 	{
