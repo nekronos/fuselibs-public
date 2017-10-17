@@ -38,7 +38,7 @@ namespace Fuse.Reactive
 				nt = nt.ParentTable;
 			}
 
-			_js.ScriptModule.Dependencies = _deps;
+			_js.ScriptModule.Dependencies = deps;
 			EvaluateModule();
 			ReflectExportsJS();
 		}
