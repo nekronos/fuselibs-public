@@ -38,6 +38,11 @@ namespace Fuse.Resources.Exif
 			return true;
 		}
 
+		internal static extern(Android) ExifData FromAndroidInputStream(Java.Object stream)
+		{
+			return ExifAndroidImpl.FromInputStream(stream);
+		}
+
 		public static ImageOrientation GetImageOrientationFromByteArrayOrDefault(byte[] buffer)
 		{
 			ExifData data;
@@ -179,14 +184,25 @@ namespace Fuse.Resources.Exif
 		internal static ExifData FromByteArray(byte[] bytes)
 		{
 			var buf = ForeignDataView.Create(bytes);
-			var orientation = GetOrientation(buf);
-			return new ExifData(orientation);
+			var stream = InputStreamFromByteArray(buf);
+			return new ExifData(GetOrientation(stream));
+		}
+
+		internal static ExifData FromInputStream(Java.Object stream)
+		{
+			return new ExifData(GetOrientation(stream));
 		}
 
 		[Foreign(Language.Java)]
-		static int GetOrientation(Java.Object buf)
+		static Java.Object InputStreamFromByteArray(Java.Object buf)
 		@{
-			InputStream s = new com.fuse.android.ByteBufferInputStream((com.uno.UnoBackedByteBuffer)buf);
+			return new com.fuse.android.ByteBufferInputStream((com.uno.UnoBackedByteBuffer)buf);
+		@}
+
+		[Foreign(Language.Java)]
+		static int GetOrientation(Java.Object stream)
+		@{
+			InputStream s = (InputStream)stream;
 			try {
 				Metadata metadata = ImageMetadataReader.readMetadata(s);
 				ExifIFD0Directory directory = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
