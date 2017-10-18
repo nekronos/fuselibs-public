@@ -151,8 +151,6 @@ namespace Fuse.Resources
 			else
 				_contentType = ct;
 
-			_orientation = ExifData.FromByteArray(data).Orientation;
-
 			new BackgroundLoad(data, _contentType, SuccessCallback, FailureCallback);
 		}
 
