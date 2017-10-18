@@ -30,7 +30,7 @@ namespace Fuse.Resources
 	}
 
 	/** Specifies an image file as a data source to be displayed by an @Image element.
-	
+
 		The file pointed to by the `File` property will be added to the app as a bundle file automatically.
 
 		## Example
@@ -47,7 +47,7 @@ namespace Fuse.Resources
 
 		However, if the path comes from JavaScript or some other dynamic data source, it cannot automatically be inferred by the compiler.
 		Thus, we need to explicitly specify it as a [bundle file](articles:assets/bundle) in our `.unoproj`:
-			
+
 			"Includes": [
 				"assets/kitten.jpg:Bundle"
 			]
@@ -59,7 +59,7 @@ namespace Fuse.Resources
 					image: "assets/kitten.jpg"
 				}
 			</JavaScript>
-			
+
 			<Image>
 				<FileImageSource File="{image}" />
 			</Image>
@@ -89,7 +89,7 @@ namespace Fuse.Resources
 		{
 			get { return _proxy.Impl == null || (_proxy.Impl as FileImageSourceImpl).TestIsClean; }
 		}
-		
+
 		ProxyImageSource _proxy;
 		public FileImageSource(FileSource file)
 		{
@@ -195,7 +195,9 @@ namespace Fuse.Resources
 				}
 
 				var data = _file.ReadAllBytes();
-				_orientation = ExifData.FromByteArray(data).Orientation;
+				ExifData exifData;
+				if (ExifData.FromByteArray(data, out exifData))
+					_orientation = exifData.Orientation;
 				TextureLoader.ByteArrayToTexture2DFilename(new Buffer(data), _file.Name, SetTexture);
 				OnChanged();
 			}
@@ -261,7 +263,9 @@ namespace Fuse.Resources
 				try
 				{
 					var data = _file.ReadAllBytes();
-					_orientation = ExifData.FromByteArray(data).Orientation;
+					ExifData exifData;
+					if (ExifData.FromByteArray(data, out exifData))
+						_orientation = exifData.Orientation;
 					TextureLoader.ByteArrayToTexture2DFilename(new Buffer(data), _file.Name, GWDoneCallback);
 				}
 				catch (Exception e)

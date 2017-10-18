@@ -5,7 +5,6 @@ using Fuse.Drawing;
 using Fuse.Internal;
 using Fuse.Elements;
 
-using Fuse.Nodes;
 using Fuse.Resources;
 using Fuse.Resources.Exif;
 
