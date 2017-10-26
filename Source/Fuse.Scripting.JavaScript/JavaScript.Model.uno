@@ -69,12 +69,12 @@ namespace Fuse.Reactive
 
         //TODO: This should probably be JavaScript.Model, Preview would need to be adjusted as well
         [UXAttachedPropertySetter("Model"), UXNameScope]
-        public static void SetAppModel(AppBase app, IExpression model)
+        public static void SetAppModel(IApp app, IExpression model)
         {
-			app.RootViewport.RemoveAllChildren<ModelJavaScript>();
-			
-			var _appModel = ModelJavaScript.CreateFromPreviewState(app.RootViewport, model);
-			app.RootViewport.Children.Add(_appModel);
+			app.Root.RemoveAllChildren<ModelJavaScript>();
+
+			var _appModel = ModelJavaScript.CreateFromPreviewState(app.Root, model);
+			app.Root.Children.Add(_appModel);
         }
 	}
 	
