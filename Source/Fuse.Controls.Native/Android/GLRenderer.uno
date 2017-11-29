@@ -16,6 +16,12 @@ namespace Fuse.Controls.Native.Android
 		Java.Object _surface;
 
 		int2 _textureSize = int2(-1);
+		int _surfaceTextureVersion = 0;
+
+		public GLRenderer()
+		{
+
+		}
 
 		public void Draw(
 			ViewHandle viewHandle,
@@ -31,7 +37,7 @@ namespace Fuse.Controls.Native.Android
 				ReleaseResources();
 				_textureHandle = GL.CreateTexture();
 				_videoTexture = new VideoTexture(_textureHandle);
-				_surfaceTexture = NewSurfaceTexture((int)_textureHandle, OnFrameAvailable, pixelSize.X, pixelSize.Y);
+				_surfaceTexture = NewSurfaceTexture(_surfaceTextureVersion++, (int)_textureHandle, OnFrameAvailable, pixelSize.X, pixelSize.Y);
 				_surface = NewSurface(_surfaceTexture);
 			}
 
@@ -40,6 +46,24 @@ namespace Fuse.Controls.Native.Android
 			Draw(_surface, viewHandle.NativeHandle);
 
 			Blitter.Singleton.Blit(_videoTexture, position, size, localToClipTransform);
+		}
+
+		public void Blit()
+		{
+
+		}
+
+		public void UpdateTexture()
+		{
+			SurfaceTextureUpdateTexImage(_surfaceTexture);
+		}
+
+		// Have to dispatch to UI thread, its undefined
+		// what thread this callback will be run on
+		void OnFrameAvailable(int surfaceTextureVersion)
+		{
+			if (_surfaceTextureVersion != surfaceTextureVersion)
+				return;
 		}
 
 		void ReleaseResources()
@@ -89,13 +113,14 @@ namespace Fuse.Controls.Native.Android
 		}
 
 		[Foreign(Language.Java)]
-		Java.Object NewSurfaceTexture(int textureName, Action frameAvailableCallback, int w, int h)
+		Java.Object NewSurfaceTexture(int version, int textureName, Action frameAvailableCallback, int w, int h)
 		@{
 			android.graphics.SurfaceTexture st = new android.graphics.SurfaceTexture(textureName);
 			st.setDefaultBufferSize(w, h);
 			st.setOnFrameAvailableListener(new android.graphics.SurfaceTexture.OnFrameAvailableListener() {
+					final int _version = version;
 					public void onFrameAvailable(android.graphics.SurfaceTexture surfaceTexture) {
-						frameAvailableCallback.run();
+						frameAvailableCallback.run(_version);
 					}
 				});
 			return st;
