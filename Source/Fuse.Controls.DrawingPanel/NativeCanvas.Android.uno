@@ -146,22 +146,25 @@ namespace Fuse.Controls.Native.Android
 
 		public static void Draw(this Java.Object canvasHandle, Line line)
 		{
+			var from = line.From;
+			var to = line.To;
 			DrawLine(
 				canvasHandle,
-				line.From.X,
-				line.From.Y,
-				line.To.X,
-				line.To.Y,
+				from.X,
+				from.Y,
+				to.X,
+				to.Y,
 				line.Width,
 				(int)Uno.Color.ToArgb(line.Color));
 		}
 
 		public static void Draw(this Java.Object canvasHandle, Internal.Circle circle)
 		{
+			var center = circle.Center;
 			DrawCircle(
 				canvasHandle,
-				circle.Center.X,
-				circle.Center.Y,
+				center.X,
+				center.Y,
 				circle.Radius,
 				(int)Uno.Color.ToArgb(circle.Color));
 		}
