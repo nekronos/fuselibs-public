@@ -4,9 +4,9 @@
 @{Fuse.Platform.SystemUIWillResizeEventArgs:IncludeDirective}
 @{ObjC.Object:IncludeDirective}
 
-#include <AppDelegateSoftKeyboard.h>
+#include <KeyboardContext.h>
 
-@implementation uAppDelegate (SoftKeyboard)
+@implementation uKeyboardContext
 
 - (void)uKeyboardWillChangeFrame:(NSNotification *)notification
 {
