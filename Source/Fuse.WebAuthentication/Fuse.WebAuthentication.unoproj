@@ -1,0 +1,21 @@
+{
+  "Copyright": "Copyright (c) Fusetools AS 2017",
+  "Description": "Native web authentication",
+  "Publisher": "Fusetools AS",
+  "Version": "1.7.4",
+  "Package": {
+    "ProjectUrl": "https://fusetools.com"
+  },
+  "IsTransitive": true,
+  "Packages": [
+    "Uno.Net.Http",
+    "Uno.Permissions",
+    "Uno.Threading"
+  ],
+  "Projects": [
+    "../Fuse.Scripting/Fuse.Scripting.unoproj"
+  ],
+  "Includes": [
+    "WebAuthentication.uno:Source",
+  ],
+}

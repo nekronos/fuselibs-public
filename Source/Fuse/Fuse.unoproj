@@ -47,5 +47,6 @@
     "../Fuse.Testing/Fuse.Testing.unoproj",
     "../Fuse.Triggers/Fuse.Triggers.unoproj",
     "../Fuse.UserEvents/Fuse.UserEvents.unoproj",
+    "../Fuse.WebAuthentication/Fuse.WebAuthentication.unoproj",
   ],
 }
